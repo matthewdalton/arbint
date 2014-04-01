@@ -33,6 +33,11 @@ ArbInt *AI_NewArbInt_FromLong(long value);
  */
 ArbInt *AI_NewArbInt_FromSizeT(size_t value, int sign);
 
+/*
+ * Free an ArbInt created using any of the above initialisers
+ */
+void AI_FreeArbInt(ArbInt *aival);
+
 
 /*********************************************************************
  Output

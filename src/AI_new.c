@@ -129,12 +129,7 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
   return aival;
 
  error_exit:
-  if (aival->data != NULL) {
-    AI_free(aival->data);
-  }
-  if (aival != NULL) {
-    AI_free(aival);
-  }
+  AI_FreeArbInt(aival);
 }
 
 /*
@@ -205,6 +200,16 @@ void AI_Resize(ArbInt *val, unsigned long newsize)
     }
     val->data = newdata;
     val->dataLen = newsize;
+  }
+}
+
+void AI_FreeArbInt(ArbInt *aival)
+{
+  if (aival->data != NULL) {
+    AI_free(aival->data);
+  }
+  if (aival != NULL) {
+    AI_free(aival);
   }
 }
 
