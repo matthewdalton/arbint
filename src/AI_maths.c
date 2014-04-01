@@ -28,6 +28,15 @@ ai_mul_single_carry(unsigned long a, unsigned long b, unsigned long *carry);
 static ArbInt *
 ai_mul_signed(ArbInt const *A, ArbInt const *B);
 
+static ArbInt *
+ai_mul_single_stage(ArbInt const *A, unsigned long b);
+
+static ArbInt *
+ai_mul_add_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
+
+static ArbInt *
+ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
+
 ArbInt *AI_Add(ArbInt const *A, ArbInt const *B)
 {
   if (A->sign != B->sign) {
@@ -273,6 +282,9 @@ ai_get_hsb_position(unsigned long val)
 static ArbInt *
 ai_add_unsigned(ArbInt const *A, ArbInt const *B)
 {
+#if 1
+  return ai_add_unsigned_with_lshift(A, B, 0);
+#else
   ArbInt *ans = AI_NewArbInt();
   int carry = 0;
   int i;
@@ -324,6 +336,7 @@ ai_add_unsigned(ArbInt const *A, ArbInt const *B)
   return ans;
  error_exit:
   return NULL;
+#endif
 }
 
 
@@ -399,7 +412,8 @@ ai_add_single_carry(unsigned long a, unsigned long b, int *carry)
     *carry = 0;
   }
 
-  printf("    Adding %lu, %lu and %d: %lu + carry of %d\n", a, b, inp_carry, ans, *carry);
+  printf("    Adding %lu, %lu and %d: %lu + carry of %d\n", a, b, inp_carry, 
+	 ans, *carry);
 
   return ans;
 }
@@ -418,7 +432,8 @@ ai_sub_single_carry(unsigned long a, unsigned long b, int *carry)
 
   *carry = (b > a) ? 1 : 0;
 
-  printf("Subtracting %lu, %lu and %d: %lu & carry of %d\n", a, b, inp_carry, ans, *carry);
+  printf("Subtracting %lu, %lu and %d: %lu & carry of %d\n", a, b, inp_carry,
+	 ans, *carry);
 
   return ans;
 }
@@ -510,6 +525,14 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   if (ans == NULL)
     goto error_exit;
 
+#if 0
+  /*
+   * Oh dear. O(n^2). Replace with something like Karatsuba algorithm.
+   */
+  for (index = 0; index < B->dataLen; ++index) {
+    ArbInt *partial = ai_mul_single_stage(A, B->data[index]);
+  }
+#else
   /* temporary */
   if (A->dataLen > 1 || B->dataLen > 1)
     return NULL;
@@ -535,14 +558,93 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   return ans;
 
   /* end temporary */
+#endif
+
  error_exit:
   return NULL;
 }
 
 static ArbInt *
-ai_mul_single_stage(ArbInt const *A, unsigned long b, ArbInt const * const mag)
+ai_mul_single_stage(ArbInt const *A, unsigned long b)
 {
   ArbInt *ans = AI_NewArbInt();
   
   /* I know! An iterator! */
+}
+
+static ArbInt *
+ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
+{
+  ArbInt *ans = NULL;
+  int carry;
+  int i;
+  int j;
+
+  if (B_lshift > AI_MAX_LENGTH - B->dataLen) {
+    /* Too big */
+    goto error_exit;
+  }
+
+  ans = AI_NewArbInt();
+  if (ans == NULL)
+    goto error_exit;
+
+  AI_Resize(ans, MAX(A->dataLen, (B->dataLen + B_lshift)));
+
+  /*
+   * Make B hold the lower value
+   */
+  if (B->dataLen + B_lshift > A->dataLen) {
+    ArbInt const *temp;
+    temp = B;
+    B = A;
+    A = temp;
+  }
+
+  /*
+   * Insert the addition with the shift zeros
+   */
+  for (i = B_lshift; i > 0; --i) {
+    ans->data[ans->dataLen - i - 1] = A->data[A->dataLen - i - 1];
+  }
+
+  /*
+   * Perform the rest of the addition
+   */
+  /*  j = ans->dataLen - 1;
+  for (i = 0; i < B->dataLen; ++i) {
+    ans->data[j - i] = 
+      ai_add_single_carry( A->data[A->dataLen - 1 - i],
+			   B->data[B->dataLen - 1 - i], 
+			   &carry );
+
+    if (carry) {
+      AI_Resize(ans, ans->dataLen + 1);
+    }
+    } */
+  carry = 0;
+  j = ans->dataLen - 1 - B_lshift;
+  for (i = 0; i < B->dataLen; ++i) {
+    ans->data[j - i] =
+      ai_add_single_carry( A->data[A->dataLen - 1 - i - B_lshift],
+			   B->data[B->dataLen - 1 - i],
+			   &carry );
+  }
+
+  for (; i < A->dataLen; ++i) {
+    ans->data[j - i] = 
+      ai_add_single_carry(A->data[A->dataLen - 1 - i], 0, &carry);
+  }
+
+  if (carry) {
+    AI_Resize(ans, ans->dataLen + 1);
+    ans->data[0] = 1;
+  }
+
+  return ans;
+
+ error_exit:
+  if (ans != NULL)
+    AI_FreeArbInt(ans);
+  return NULL;
 }
