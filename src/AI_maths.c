@@ -521,17 +521,21 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   unsigned long result;
   unsigned long carry;
   int index = 0;
-  ArbInt *ans = AI_NewArbInt();
+  ArbInt *ans;
+  /*
+  ans = AI_NewArbInt();
   if (ans == NULL)
     goto error_exit;
-
-#if 0
+  */
+#if 1
   /*
    * Oh dear. O(n^2). Replace with something like Karatsuba algorithm.
    */
+  ArbInt *partial;
   for (index = 0; index < B->dataLen; ++index) {
-    ArbInt *partial = ai_mul_single_stage(A, B->data[index]);
+    partial = ai_mul_single_stage(A, B->data[index]);
   }
+  return partial;
 #else
   /* temporary */
   if (A->dataLen > 1 || B->dataLen > 1)
