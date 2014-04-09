@@ -133,28 +133,36 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
 }
 
 /*
- * Initialise to value held in a long
+ * Initialise using various value types
  */
 ArbInt *AI_NewArbInt_FromLong(long value)
 {
+  int sign = 1;
+
+  if (value < 0) {
+    value = -value;
+    sign = -1;
+  }
+
+  return AI_NewArbInt_FromValue((unsigned long)value, sign);
+}
+
+ArbInt *AI_NewArbInt_FromULong(unsigned long value)
+{
+  return AI_NewArbInt_FromValue(value, 1);
+}
+
+ArbInt *AI_NewArbInt_FromValue(unsigned long value, int sign)
+{
   ArbInt *ai = ai_new_empty();
-  unsigned long uval;
-  int           sign = 1;
 
   if (ai != NULL) {
-    long *lv = AI_malloc(sizeof(long));
+    unsigned long *lv = AI_malloc(sizeof(unsigned long));
     if (lv == NULL) {
       goto error_exit;
     }
 
-    if (value < 0) {
-      uval = -value;
-      sign = -1;
-    }
-    else {
-      uval = value;
-    }
-    *lv = uval;
+    *lv = value;
 
     ai_assign_value(ai, lv, 1, sign);
   }
@@ -173,6 +181,8 @@ ArbInt *AI_NewArbInt_FromLong(long value)
  */
 ArbInt *AI_NewArbInt_FromSizeT(size_t value, int sign)
 {
+  /* unimplemented */
+  return NULL;
 }
 
 void AI_Resize(ArbInt *val, unsigned long newsize)

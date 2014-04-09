@@ -522,20 +522,25 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   unsigned long carry;
   int index = 0;
   ArbInt *ans;
-  /*
+
   ans = AI_NewArbInt();
   if (ans == NULL)
     goto error_exit;
-  */
+
 #if 1
   /*
    * Oh dear. O(n^2). Replace with something like Karatsuba algorithm.
    */
   ArbInt *partial;
-  for (index = 0; index < B->dataLen; ++index) {
+  ArbInt *old_ans;
+  for (index = B->dataLen - 1; index >= 0; --index) {
     partial = ai_mul_single_stage(A, B->data[index]);
+    old_ans = ans;
+    ans = ai_add_unsigned_with_lshift(ans, partial, B->dataLen-1-index);
+    AI_FreeArbInt(old_ans);
   }
-  return partial;
+  ans->sign *= B->sign;
+  return ans;
 #else
   /* temporary */
   if (A->dataLen > 1 || B->dataLen > 1)
@@ -572,10 +577,28 @@ static ArbInt *
 ai_mul_single_stage(ArbInt const *A, unsigned long b)
 {
   ArbInt *ans = AI_NewArbInt();
-  
-  /* I know! An iterator! */
+  ArbInt *old_ans;
+
+  int i;
+  ArbInt *partial = AI_NewArbInt();
+  AI_Resize(partial, 2);
+  partial->dataLen = 2;
+  unsigned long carry;
+  unsigned long val;
+  for (i = A->dataLen - 1; i >= 0; --i) {
+    val = ai_mul_single_carry(A->data[i], b, &carry);
+    partial->data[0] = carry;
+    partial->data[1] = val;
+    old_ans = ans;
+    ans = ai_add_unsigned_with_lshift(ans, partial, A->dataLen-1-i);
+    /* TODO: Use a memory pool to avoid repeated alloc/frees */
+    AI_FreeArbInt(old_ans);
+  }
+  ans->sign = A->sign;
+  return ans;
 }
 
+/* TODO: allow A and/or B to be NULL */
 static ArbInt *
 ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
 {

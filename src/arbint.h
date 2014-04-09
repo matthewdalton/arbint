@@ -31,12 +31,14 @@ ArbInt *AI_NewArbInt_FromLong(long value);
 /*
  * Initialise to value held in a size_t, with a separate sign indicator
  */
+ArbInt *AI_NewArbInt_FromValue(unsigned long value, int sign);
 ArbInt *AI_NewArbInt_FromSizeT(size_t value, int sign);
 
 /*
  * Free an ArbInt created using any of the above initialisers
  */
 void AI_FreeArbInt(ArbInt *aival);
+
 
 
 /*********************************************************************
