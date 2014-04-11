@@ -57,6 +57,14 @@ ArbInt *AI_Add(ArbInt const *A, ArbInt const *B)
   }
 }
 
+ArbInt *AI_Add_Value(ArbInt const *A, unsigned long val, int sign)
+{
+  ArbInt *B = AI_NewArbInt_FromValue(val, sign);
+  ArbInt *res = AI_Add(A, B);
+  AI_FreeArbInt(B);
+  return res;
+}
+
 ArbInt *AI_Sub(ArbInt const *A, ArbInt const *B)
 {
   if (A->sign != B->sign) {
@@ -98,6 +106,14 @@ ArbInt *AI_Mul(ArbInt const *A, ArbInt const *B)
   return ans;
  error_exit:
   return NULL;
+}
+
+ArbInt *AI_Mul_Value(ArbInt const *A, unsigned long val, int sign)
+{
+  ArbInt *B = AI_NewArbInt_FromValue(val, sign);
+  ArbInt *res = AI_Mul(A, B);
+  AI_FreeArbInt(B);
+  return res;
 }
 
 ArbInt *AI_Div(ArbInt const *A, ArbInt const *B)

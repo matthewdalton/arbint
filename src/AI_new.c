@@ -120,9 +120,16 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
     /*
      * Decimal conversion
      */
-    while (*p != '\0') {
-      /* unimplemented! */
-      assert(0);
+    if (*p != '\0' && *p >= '0' && *p <= '9') {
+      d[aival->dataLen-1] = *p;
+      ++p;
+    }
+    while (*p != '\0' && *p >= '0' && *p <= '9') {
+      ArbInt *tmp = AI_Mul_Value(aival, 10, 1);
+      ArbInt *tmp2 = AI_Add_Value(tmp, AI_CHAR_TO_VAL(*p), aival->sign);
+      AI_FreeArbInt(aival);
+      AI_FreeArbInt(tmp);
+      aival = tmp2;
     }
   }
 

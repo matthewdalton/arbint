@@ -59,6 +59,7 @@ char *AI_ToString(ArbInt const *value);
  * Addition
  */
 ArbInt *AI_Add(ArbInt const *A, ArbInt const *B);
+ArbInt *AI_Add_Value(ArbInt const *A, unsigned long val, int sign);
 
 /*
  * Subtraction (A - B)
@@ -69,6 +70,7 @@ ArbInt *AI_Sub(ArbInt const *A, ArbInt const *B);
  * Multiplication
  */
 ArbInt *AI_Mul(ArbInt const *A, ArbInt const *B);
+ArbInt *AI_Mul_Value(ArbInt const *A, unsigned long val, int sign);
 
 /*
  * Division (A / B)
