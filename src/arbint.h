@@ -4,6 +4,8 @@
 #ifndef _ARBINT_H_
 #define _ARBINT_H_
 
+#define STATIC
+
 #include <stdlib.h>
 
 typedef struct arbint	ArbInt;
@@ -33,6 +35,11 @@ ArbInt *AI_NewArbInt_FromLong(long value);
  */
 ArbInt *AI_NewArbInt_FromValue(unsigned long value, int sign);
 ArbInt *AI_NewArbInt_FromSizeT(size_t value, int sign);
+
+/*
+ * Copy constructor
+ */
+ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai);
 
 /*
  * Free an ArbInt created using any of the above initialisers

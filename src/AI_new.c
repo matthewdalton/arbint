@@ -121,7 +121,7 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
      * Decimal conversion
      */
     if (*p != '\0' && *p >= '0' && *p <= '9') {
-      d[aival->dataLen-1] = *p;
+      d[aival->dataLen-1] = AI_CHAR_TO_VAL(*p);
       ++p;
     }
     while (*p != '\0' && *p >= '0' && *p <= '9') {
@@ -190,6 +190,22 @@ ArbInt *AI_NewArbInt_FromSizeT(size_t value, int sign)
 {
   /* unimplemented */
   return NULL;
+}
+
+ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
+{
+  ArbInt *ret = ai_new_empty();
+  if (ret == NULL)
+    return NULL;
+
+  unsigned long *lv = AI_malloc(ai->dataLen);
+  if (lv == NULL) {
+    AI_FreeArbInt(ret);
+  }
+
+  memcpy(ai->data, lv, ai->dataLen);
+  ai_assign_value(ret, lv, ai->dataLen, ai->sign);
+  return ret;
 }
 
 void AI_Resize(ArbInt *val, unsigned long newsize)

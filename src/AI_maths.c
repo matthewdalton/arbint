@@ -4,37 +4,37 @@
 #include "arbint.h"
 #include "arbint-priv.h"
 
-static int
+STATIC int
 ai_get_hsb_position(unsigned long val);
 
-static ArbInt *
+STATIC ArbInt *
 ai_add_unsigned(ArbInt const *A, ArbInt const *B);
 
-static ArbInt *
+STATIC ArbInt *
 ai_sub_unsigned(ArbInt const *A, ArbInt const *B);
 
-static unsigned long
+STATIC unsigned long
 ai_add_single_carry(unsigned long a, unsigned long b, int *carry);
 
-static unsigned long
+STATIC unsigned long
 ai_sub_single_carry(unsigned long a, unsigned long b, int *carry);
 
-static int
+STATIC int
 ai_compare_matchinglength(ArbInt const *A, ArbInt const *B);
 
-static unsigned long
+STATIC unsigned long
 ai_mul_single_carry(unsigned long a, unsigned long b, unsigned long *carry);
 
-static ArbInt *
+STATIC ArbInt *
 ai_mul_signed(ArbInt const *A, ArbInt const *B);
 
-static ArbInt *
+STATIC ArbInt *
 ai_mul_single_stage(ArbInt const *A, unsigned long b);
 
-static ArbInt *
+STATIC ArbInt *
 ai_mul_add_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
 
-static ArbInt *
+STATIC ArbInt *
 ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
 
 ArbInt *AI_Add(ArbInt const *A, ArbInt const *B)
@@ -96,9 +96,6 @@ ArbInt *AI_Sub(ArbInt const *A, ArbInt const *B)
 
 ArbInt *AI_Mul(ArbInt const *A, ArbInt const *B)
 {
-  unsigned long result;
-  unsigned long carry;
-
   ArbInt *ans = ai_mul_signed(A, B);
   if (ans == NULL)
     goto error_exit;
@@ -246,7 +243,7 @@ ArbInt *AI_Neg(ArbInt const *A)
  Private functions
  *********************************************************************/
 
-static int
+STATIC int
 ai_get_hsb_position(unsigned long val)
 {
   int bit = 0;
@@ -295,10 +292,10 @@ ai_get_hsb_position(unsigned long val)
 }
 
 
-static ArbInt *
+STATIC ArbInt *
 ai_add_unsigned(ArbInt const *A, ArbInt const *B)
 {
-#if 1
+#if 0
   return ai_add_unsigned_with_lshift(A, B, 0);
 #else
   ArbInt *ans = AI_NewArbInt();
@@ -356,7 +353,7 @@ ai_add_unsigned(ArbInt const *A, ArbInt const *B)
 }
 
 
-static ArbInt *
+STATIC ArbInt *
 ai_sub_unsigned(ArbInt const *A, ArbInt const *B)
 {
   ArbInt *ans = AI_NewArbInt();
@@ -410,7 +407,7 @@ ai_sub_unsigned(ArbInt const *A, ArbInt const *B)
  * @param[in,out] carry		Carry must be valid and set to either 0 or 1
  *				as input. Will be set to 0 or 1 on return.
  */
-static unsigned long
+STATIC unsigned long
 ai_add_single_carry(unsigned long a, unsigned long b, int *carry)
 {
   unsigned long ans;
@@ -428,14 +425,16 @@ ai_add_single_carry(unsigned long a, unsigned long b, int *carry)
     *carry = 0;
   }
 
-  printf("    Adding %lu, %lu and %d: %lu + carry of %d\n", a, b, inp_carry, 
+  /* printf("    Adding %lu, %lu and %d: %lu + carry of %d\n", a, b, inp_carry,  */
+  /* 	 ans, *carry); */
+  printf("    Adding %x, %x and %d: %x + carry of %d\n", a, b, inp_carry, 
 	 ans, *carry);
 
   return ans;
 }
 
 
-static unsigned long
+STATIC unsigned long
 ai_sub_single_carry(unsigned long a, unsigned long b, int *carry)
 {
   unsigned long ans;
@@ -463,28 +462,28 @@ ai_sub_single_carry(unsigned long a, unsigned long b, int *carry)
  *	 0 if A == B
  *	 1 if A > B
  */
-static int
+STATIC int
 ai_compare_matchinglength(ArbInt const *A, ArbInt const *B)
 {
   unsigned long *ptr_a;
   unsigned long *ptr_b;
+  size_t len;
 
   assert(A->dataLen == B->dataLen);
 
-  /*
-   * O(n) unfortunately. Might be worth revisiting this if it's too slow.
-   */
+  len = A->dataLen;
   ptr_a = A->data;
   ptr_b = B->data;
-  while (*ptr_a == *ptr_b) {
-    ptr_a++;
-    ptr_b++;
+  while (*ptr_a == *ptr_b && len > 0) {
+    ++ptr_a;
+    ++ptr_b;
+    --len;
   }
   return *ptr_b == *ptr_a ? 0 : (*ptr_a < *ptr_b ? -1 : 1);
 }
 
 
-static unsigned long
+STATIC unsigned long
 ai_mul_single_carry(unsigned long a, unsigned long b, unsigned long *carry)
 {
   unsigned long result16_1;
@@ -531,7 +530,7 @@ ai_mul_single_carry(unsigned long a, unsigned long b, unsigned long *carry)
   return final_result;
 }
 
-static ArbInt *
+STATIC ArbInt *
 ai_mul_signed(ArbInt const *A, ArbInt const *B)
 {
   unsigned long result;
@@ -589,10 +588,10 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   return NULL;
 }
 
-static ArbInt *
+STATIC ArbInt *
 ai_mul_single_stage(ArbInt const *A, unsigned long b)
 {
-  ArbInt *ans = AI_NewArbInt();
+  ArbInt *ans = AI_NewArbInt();	/* == 0 */
   ArbInt *old_ans;
 
   int i;
@@ -608,20 +607,23 @@ ai_mul_single_stage(ArbInt const *A, unsigned long b)
     old_ans = ans;
     ans = ai_add_unsigned_with_lshift(ans, partial, A->dataLen-1-i);
     /* TODO: Use a memory pool to avoid repeated alloc/frees */
+    printf("Freeing %x\n", old_ans);
+    printf("Partial answer: %s\n", AI_ToString(ans));
     AI_FreeArbInt(old_ans);
   }
   ans->sign = A->sign;
   return ans;
 }
 
-/* TODO: allow A and/or B to be NULL */
-static ArbInt *
+STATIC ArbInt *
 ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
 {
   ArbInt *ans = NULL;
   int carry;
   int i;
   int j;
+  int b;
+  int a;
 
   if (B_lshift > AI_MAX_LENGTH - B->dataLen) {
     /* Too big */
@@ -635,53 +637,97 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   AI_Resize(ans, MAX(A->dataLen, (B->dataLen + B_lshift)));
 
   /*
-   * Make B hold the lower value
+   * a is the array index of A->data, but 0 is one past the last item.
+   * eg. A->data[A->dataLen + a] where -dataLen <= a <= -1
+   *
+   * b is the array index of B->data and ans->data.
+   * For the range  -dataLen <= b <= -1,
+   *   B->data[B->dataLen + b] is valid.
+   * For the range  -dataLen <= b <= B_lshift-1
+   *   ans->data[B->dataLen + b] is valid.
+   *
+   * All of that, plus 1.
    */
-  if (B->dataLen + B_lshift > A->dataLen) {
-    ArbInt const *temp;
-    temp = B;
-    B = A;
-    A = temp;
+  a = 0;
+  b = B_lshift;
+  while (A->dataLen + a > 0 && b > 0) {
+    ans->data[B->dataLen + b - 1] = A->data[A->dataLen + a - 1];
+    a--;
+    b--;
   }
 
-  /*
-   * Insert the addition with the shift zeros
-   */
-  for (i = B_lshift; i > 0; --i) {
-    ans->data[ans->dataLen - i - 1] = A->data[A->dataLen - i - 1];
-  }
-
-  /*
-   * Perform the rest of the addition
-   */
-  /*  j = ans->dataLen - 1;
-  for (i = 0; i < B->dataLen; ++i) {
-    ans->data[j - i] = 
-      ai_add_single_carry( A->data[A->dataLen - 1 - i],
-			   B->data[B->dataLen - 1 - i], 
-			   &carry );
-
-    if (carry) {
-      AI_Resize(ans, ans->dataLen + 1);
-    }
-    } */
   carry = 0;
-  j = ans->dataLen - 1 - B_lshift;
-  for (i = 0; i < B->dataLen; ++i) {
-    ans->data[j - i] =
-      ai_add_single_carry( A->data[A->dataLen - 1 - i - B_lshift],
-			   B->data[B->dataLen - 1 - i],
-			   &carry );
+  if (b == 0) {
+    /*
+    Either:
+       B____ +
+     AAAAAAA
+     or:
+     BBB____ +
+      AAAAAA
+    */
+
+    /* Add the overlapping bytes */
+    while (A->dataLen + a > 0 && B->dataLen + b > 0) {
+      ans->data[B->dataLen + b - 1] =
+	ai_add_single_carry( B->data[B->dataLen + b - 1],
+			     A->data[A->dataLen + a - 1],
+			     &carry );
+      a--;
+      b--;
+    }
+
+    if (B->dataLen + b == 0) {
+      /*
+        B___ +
+      AAAAAA
+      */
+      while (A->dataLen + a > 0) {
+	ans->data[B->dataLen + b - 1] =
+	  ai_add_single_carry( 0,
+			       A->data[A->dataLen + a - 1],
+			       &carry );
+	a--;
+	b--;
+      }
+    }
+    else {
+      /*
+      BBB___ +
+        AAAA
+      */
+      while (B->dataLen + b > 0) {
+	ans->data[B->dataLen + b - 1] =
+	  ai_add_single_carry( B->data[B->dataLen + b - 1],
+			       0,
+			       &carry );
+	/* a--; */
+	b--;
+      }
+    }
+  }
+  else {
+    /*
+    A->dataLen + a < 0
+    
+    B____ +
+      AAA
+    */
+    while (B->dataLen + b > 0) {
+      ans->data[B->dataLen + b - 1] =
+	ai_add_single_carry( B->data[B->dataLen + b - 1],
+			     0,
+			     &carry );
+      /* a--; */
+      b--;
+    }
   }
 
-  for (; i < A->dataLen; ++i) {
-    ans->data[j - i] = 
-      ai_add_single_carry(A->data[A->dataLen - 1 - i], 0, &carry);
-  }
-
-  if (carry) {
+  if (carry > 0) {
     AI_Resize(ans, ans->dataLen + 1);
-    ans->data[0] = 1;
+    /* error check? */
+    ans->dataLen += 1;
+    ans->data[0] = carry;
   }
 
   return ans;

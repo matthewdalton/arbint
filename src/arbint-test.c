@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "arbint.h"
+#include "arbint-unittest.h"
 
 void loop_add(ArbInt **ans, ArbInt *op, unsigned long mult)
 {
@@ -35,6 +36,17 @@ int main()
   ArbInt *val_mul;
   int mul_test = 1;
   unsigned int mult = 100;
+
+  if (!test_ai_add_unsigned_with_lshift()) {
+    printf("Unit tests failed\n");
+    return 1;
+  }
+
+  {
+    char *s = "12345678901234567890123456789012345678901234567890123456789";
+    val_A = AI_NewArbInt_FromString(s);
+    printf("Assigned  %s,\nprints as 0x%s\n", s, AI_ToString(val_A));
+  }
 
   val_A = AI_NewArbInt_FromLong(0x10000000);
   val_B = AI_NewArbInt_FromLong(0x7FFFFFFF);
@@ -118,17 +130,17 @@ int main()
     val_sub = AI_Sub(val_A, val_B);
 
     printf("0x%s - 0x%s = 0x%s\n", 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_sub));
+           AI_ToString(val_A), 
+           AI_ToString(val_B), 
+           AI_ToString(val_sub));
     printf("Expected:             0xFFFFFFFDA\n");
 
     val_sub = AI_Sub(val_B, val_A);
 
     printf("0x%s - 0x%s = 0x%s\n", 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_sub));
+           AI_ToString(val_B), 
+           AI_ToString(val_A), 
+           AI_ToString(val_sub));
 
   }
 
@@ -143,9 +155,9 @@ int main()
     val_mul = AI_Mul(val_A, val_B);
 
     printf("0x%s * 0x%s = 0x%s\n", 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_mul));
+           AI_ToString(val_A), 
+           AI_ToString(val_B), 
+           AI_ToString(val_mul));
     printf("Expected:     0x20E\n");
   }
 
@@ -158,9 +170,9 @@ int main()
     val_mul = AI_Mul(val_A, val_B);
 
     printf("0x%s * 0x%s = 0x%s\n", 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_mul));
+           AI_ToString(val_A), 
+           AI_ToString(val_B), 
+           AI_ToString(val_mul));
     printf("Expected:      0x1620E\n");
   }
 
@@ -173,9 +185,9 @@ int main()
     val_mul = AI_Mul(val_A, val_B);
 
     printf("0x%s * 0x%s = 0x%s\n", 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_mul));
+           AI_ToString(val_A), 
+           AI_ToString(val_B), 
+           AI_ToString(val_mul));
     printf("Expected:         0x1B1CB773\n");
   }
 
@@ -188,9 +200,9 @@ int main()
     val_mul = AI_Mul(val_A, val_B);
 
     printf("0x%s * 0x%s = 0x%s\n", 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_mul));
+           AI_ToString(val_A), 
+           AI_ToString(val_B), 
+           AI_ToString(val_mul));
     printf("Expected:          0xB0A5B6773\n");
   }
 
@@ -203,9 +215,9 @@ int main()
     val_mul = AI_Mul(val_A, val_B);
 
     printf("0x%s * 0x%s = 0x%s\n", 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_mul));
+           AI_ToString(val_A), 
+           AI_ToString(val_B), 
+           AI_ToString(val_mul));
     printf("Expected:             0x10202020100\n");
   }
 
@@ -218,10 +230,42 @@ int main()
     val_mul = AI_Mul(val_A, val_B);
 
     printf("0x%s * 0x%s = 0x%s\n", 
-	   AI_ToString(val_A), 
-	   AI_ToString(val_B), 
-	   AI_ToString(val_mul));
+           AI_ToString(val_A), 
+           AI_ToString(val_B), 
+           AI_ToString(val_mul));
     printf("Expected:                 0xC1D1E894C46F06A7\n");
+  }
+
+  { // 7
+    char *s = "0x13245B7CEE59";
+    char *t = "0xAB873E0D793E8F217A";
+    printf("Mul test %d\n", mul_test++);
+    val_A = AI_NewArbInt_FromString(s);
+    val_B = AI_NewArbInt_FromString(t);
+
+    val_mul = AI_Mul(val_A, val_B);
+
+    printf("0x%s * 0x%s = 0x%s\n",
+           AI_ToString(val_A),
+           AI_ToString(val_B),
+           AI_ToString(val_mul));
+    printf("Expected:                               0xCD365EC8228E7C0AD58B265FA0F6A\n");
+  }
+
+  { // 8
+    char *s = "0xFFFFFFFFFFFFFFFF";
+    char *t = "0x2";
+    printf("Mul test %d\n", mul_test++);
+    val_A = AI_NewArbInt_FromString(s);
+    val_B = AI_NewArbInt_FromString(t);
+
+    val_mul = AI_Mul(val_A, val_B);
+
+    printf("0x%s * 0x%s = 0x%s\n",
+           AI_ToString(val_A),
+           AI_ToString(val_B),
+           AI_ToString(val_mul));
+    printf("Expected:                  0x1FFFFFFFFFFFFFFFE\n");
   }
 
   return 0;
