@@ -295,7 +295,7 @@ ai_get_hsb_position(unsigned long val)
 STATIC ArbInt *
 ai_add_unsigned(ArbInt const *A, ArbInt const *B)
 {
-#if 0
+#if 1
   return ai_add_unsigned_with_lshift(A, B, 0);
 #else
   ArbInt *ans = AI_NewArbInt();
@@ -323,10 +323,9 @@ ai_add_unsigned(ArbInt const *A, ArbInt const *B)
   j = ans->dataLen - 1;
   for (i = 0; i < B->dataLen; ++i) {
     ans->data[j - i] = 
-      ai_add_single_carry
-      (A->data[A->dataLen - 1 - i],
-       B->data[B->dataLen - 1 - i], 
-       &carry);
+      ai_add_single_carry(A->data[A->dataLen - 1 - i],
+			  B->data[B->dataLen - 1 - i], 
+			  &carry);
 
     if (carry) {
       AI_Resize(ans, ans->dataLen + 1);
@@ -474,7 +473,7 @@ ai_compare_matchinglength(ArbInt const *A, ArbInt const *B)
   len = A->dataLen;
   ptr_a = A->data;
   ptr_b = B->data;
-  while (*ptr_a == *ptr_b && len > 0) {
+  while (len > 1 && *ptr_a == *ptr_b) {
     ++ptr_a;
     ++ptr_b;
     --len;
@@ -544,7 +543,7 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
 
 #if 1
   /*
-   * Oh dear. O(n^2). Replace with something like Karatsuba algorithm.
+   * Basic O(n^2) algorithm. Replace with something like Karatsuba algorithm.
    */
   ArbInt *partial;
   ArbInt *old_ans;
@@ -597,13 +596,19 @@ ai_mul_single_stage(ArbInt const *A, unsigned long b)
   int i;
   ArbInt *partial = AI_NewArbInt();
   AI_Resize(partial, 2);
-  partial->dataLen = 2;
+  partial->dataLen = 1;
   unsigned long carry;
   unsigned long val;
   for (i = A->dataLen - 1; i >= 0; --i) {
     val = ai_mul_single_carry(A->data[i], b, &carry);
-    partial->data[0] = carry;
-    partial->data[1] = val;
+    if (carry) {
+      partial->data[0] = carry;
+      partial->data[1] = val;
+      partial->dataLen = 2;
+    }
+    else {
+      partial->data[0] = val;
+    }
     old_ans = ans;
     ans = ai_add_unsigned_with_lshift(ans, partial, A->dataLen-1-i);
     /* TODO: Use a memory pool to avoid repeated alloc/frees */
@@ -651,6 +656,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   a = 0;
   b = B_lshift;
   while (A->dataLen + a > 0 && b > 0) {
+    assert(B->dataLen + b - 1 < ans->dataLen);
     ans->data[B->dataLen + b - 1] = A->data[A->dataLen + a - 1];
     a--;
     b--;
@@ -669,6 +675,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
 
     /* Add the overlapping bytes */
     while (A->dataLen + a > 0 && B->dataLen + b > 0) {
+      assert(B->dataLen + b - 1 < ans->dataLen);
       ans->data[B->dataLen + b - 1] =
 	ai_add_single_carry( B->data[B->dataLen + b - 1],
 			     A->data[A->dataLen + a - 1],
@@ -683,6 +690,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
       AAAAAA
       */
       while (A->dataLen + a > 0) {
+	assert(B->dataLen + b - 1 < ans->dataLen);
 	ans->data[B->dataLen + b - 1] =
 	  ai_add_single_carry( 0,
 			       A->data[A->dataLen + a - 1],
@@ -697,6 +705,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
         AAAA
       */
       while (B->dataLen + b > 0) {
+	assert(B->dataLen + b - 1 < ans->dataLen);
 	ans->data[B->dataLen + b - 1] =
 	  ai_add_single_carry( B->data[B->dataLen + b - 1],
 			       0,
@@ -714,6 +723,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
       AAA
     */
     while (B->dataLen + b > 0) {
+      assert(B->dataLen + b - 1 < ans->dataLen);
       ans->data[B->dataLen + b - 1] =
 	ai_add_single_carry( B->data[B->dataLen + b - 1],
 			     0,
@@ -726,7 +736,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   if (carry > 0) {
     AI_Resize(ans, ans->dataLen + 1);
     /* error check? */
-    ans->dataLen += 1;
+    assert(0);			/* Disabling as I suspect a bug */
     ans->data[0] = carry;
   }
 

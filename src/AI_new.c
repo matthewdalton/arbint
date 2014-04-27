@@ -39,16 +39,11 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
   int nibbles;
   char c;
   int padding;
+  int sign = 1;
 
   if (value == NULL) {
     return NULL;
   }
-
-  aival = ai_new_empty();
-  if (aival == NULL) {
-    goto error_exit;
-  }
-  aival->data = NULL;
 
   /*
    * Work out how much memory we need.
@@ -60,33 +55,44 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
   if (len >= 1 && *p == '-') {
     --len;
     ++p;
-    aival->sign = -1;
+    sign = -1;
   }
   if (len >= 2 && (*p == '0' && *(p + 1) == 'x')) {
     len -= 2;
     is_hex = !0;
     p += 2;
   }
-  aival->dataLen = (len + 7) / 8;
 
-  nibbles = aival->dataLen * 8 - len;
-  //nibbles = 0;
 
-  aival->data = AI_malloc(aival->dataLen * sizeof(unsigned long));
-  if (aival->data == NULL) {
-    goto error_exit;
-  }
-
-  AI_memset(aival->data, 0, aival->dataLen * sizeof(unsigned long));
-
-  /*
-   * Assign the string, depending on format
-   */
-  d = aival->data;
   if (is_hex) {
     /*
      * Hexadecimal conversion
      */
+
+    aival = ai_new_empty();
+    if (aival == NULL) {
+      goto error_exit;
+    }
+    aival->data = NULL;
+
+    aival->dataLen = (len + 7) / 8;
+
+    nibbles = aival->dataLen * 8 - len;
+    //nibbles = 0;
+
+    aival->data = AI_malloc(aival->dataLen * sizeof(unsigned long));
+    if (aival->data == NULL) {
+      goto error_exit;
+    }
+
+    AI_memset(aival->data, 0, aival->dataLen * sizeof(unsigned long));
+
+    /*
+     * Assign the string, depending on format
+     */
+    aival->sign = sign;
+    d = aival->data;
+
     while (*p != '\0') {
       c = *p;
       if (c >= 'a' && c <= 'f') {
@@ -120,16 +126,23 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
     /*
      * Decimal conversion
      */
+
+    aival = AI_NewArbInt();
+    d = aival->data;
+
     if (*p != '\0' && *p >= '0' && *p <= '9') {
       d[aival->dataLen-1] = AI_CHAR_TO_VAL(*p);
       ++p;
     }
     while (*p != '\0' && *p >= '0' && *p <= '9') {
       ArbInt *tmp = AI_Mul_Value(aival, 10, 1);
+      printf("Mul by 10 gives %s\n", AI_ToString(tmp));
       ArbInt *tmp2 = AI_Add_Value(tmp, AI_CHAR_TO_VAL(*p), aival->sign);
+      printf("Adding %d gives %s\n", AI_CHAR_TO_VAL(*p), AI_ToString(tmp2));
       AI_FreeArbInt(aival);
       AI_FreeArbInt(tmp);
       aival = tmp2;
+      ++p;
     }
   }
 

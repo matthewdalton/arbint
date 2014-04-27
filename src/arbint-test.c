@@ -43,7 +43,8 @@ int main()
   }
 
   {
-    char *s = "12345678901234567890123456789012345678901234567890123456789";
+    //char *s = "12345678901234567890123456789012345678901234567890123456789";
+    char *s = "12345678901234567";
     val_A = AI_NewArbInt_FromString(s);
     printf("Assigned  %s,\nprints as 0x%s\n", s, AI_ToString(val_A));
   }
