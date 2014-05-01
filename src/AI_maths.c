@@ -627,6 +627,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   int carry;
   int i;
   int j;
+  int c;
   int b;
   int a;
 
@@ -655,11 +656,13 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
    */
   a = 0;
   b = B_lshift;
-  while (A->dataLen + a > 0 && b > 0) {
+  c = ans->dataLen;
+  while (A->dataLen + a > 0 && b > 0 && c > 0) {
     assert(B->dataLen + b - 1 < ans->dataLen);
-    ans->data[B->dataLen + b - 1] = A->data[A->dataLen + a - 1];
+    ans->data[c-1] = A->data[A->dataLen + a - 1];
     a--;
     b--;
+    c--;
   }
 
   carry = 0;
@@ -674,14 +677,15 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
     */
 
     /* Add the overlapping bytes */
-    while (A->dataLen + a > 0 && B->dataLen + b > 0) {
+    while (A->dataLen + a > 0 && B->dataLen + b > 0 && c > 0) {
       assert(B->dataLen + b - 1 < ans->dataLen);
-      ans->data[B->dataLen + b - 1] =
+      ans->data[c-1] =
 	ai_add_single_carry( B->data[B->dataLen + b - 1],
 			     A->data[A->dataLen + a - 1],
 			     &carry );
       a--;
       b--;
+      c--;
     }
 
     if (B->dataLen + b == 0) {
@@ -689,14 +693,15 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
         B___ +
       AAAAAA
       */
-      while (A->dataLen + a > 0) {
-	assert(B->dataLen + b - 1 < ans->dataLen);
-	ans->data[B->dataLen + b - 1] =
+      while (A->dataLen + a > 0 && c > 0) {
+	/* assert(B->dataLen + b - 1 < ans->dataLen); */
+	ans->data[c-1] =
 	  ai_add_single_carry( 0,
 			       A->data[A->dataLen + a - 1],
 			       &carry );
 	a--;
 	b--;
+        c--;
       }
     }
     else {
@@ -704,14 +709,15 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
       BBB___ +
         AAAA
       */
-      while (B->dataLen + b > 0) {
+      while (B->dataLen + b > 0 & c > 0) {
 	assert(B->dataLen + b - 1 < ans->dataLen);
-	ans->data[B->dataLen + b - 1] =
+	ans->data[c-1] =
 	  ai_add_single_carry( B->data[B->dataLen + b - 1],
 			       0,
 			       &carry );
 	/* a--; */
 	b--;
+        c--;
       }
     }
   }
@@ -722,14 +728,15 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
     B____ +
       AAA
     */
-    while (B->dataLen + b > 0) {
+    while (B->dataLen + b > 0 && c > 0) {
       assert(B->dataLen + b - 1 < ans->dataLen);
-      ans->data[B->dataLen + b - 1] =
+      ans->data[c-1] =
 	ai_add_single_carry( B->data[B->dataLen + b - 1],
 			     0,
 			     &carry );
       /* a--; */
       b--;
+      c--;
     }
   }
 
