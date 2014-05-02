@@ -426,8 +426,8 @@ ai_add_single_carry(unsigned long a, unsigned long b, int *carry)
 
   /* printf("    Adding %lu, %lu and %d: %lu + carry of %d\n", a, b, inp_carry,  */
   /* 	 ans, *carry); */
-  printf("    Adding %x, %x and %d: %x + carry of %d\n", a, b, inp_carry, 
-	 ans, *carry);
+  /* printf("    Adding %x, %x and %d: %x + carry of %d\n", a, b, inp_carry,  */
+  /* 	 ans, *carry); */
 
   return ans;
 }
@@ -446,8 +446,8 @@ ai_sub_single_carry(unsigned long a, unsigned long b, int *carry)
 
   *carry = (b > a) ? 1 : 0;
 
-  printf("Subtracting %lu, %lu and %d: %lu & carry of %d\n", a, b, inp_carry,
-	 ans, *carry);
+  /* printf("Subtracting %lu, %lu and %d: %lu & carry of %d\n", a, b, inp_carry, */
+  /* 	 ans, *carry); */
 
   return ans;
 }
@@ -537,6 +537,10 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   int index = 0;
   ArbInt *ans;
 
+  printf("Multiplying %24s x\n", AI_ToString(A));
+  printf("            %24s\n", AI_ToString(B));
+  printf("            ------------------------\n");
+
   ans = AI_NewArbInt();
   if (ans == NULL)
     goto error_exit;
@@ -547,9 +551,14 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
    */
   ArbInt *partial;
   ArbInt *old_ans;
+  char *debug_str =  "            %%%ds\n";
+  char buff[64];
+  int pad = 24;
   for (index = B->dataLen - 1; index >= 0; --index) {
     partial = ai_mul_single_stage(A, B->data[index]);
     old_ans = ans;
+    sprintf(buff, debug_str, pad-8*(B->dataLen-1-index));
+    printf(buff, AI_ToString(partial));
     ans = ai_add_unsigned_with_lshift(ans, partial, B->dataLen-1-index);
     AI_FreeArbInt(old_ans);
   }
@@ -596,7 +605,6 @@ ai_mul_single_stage(ArbInt const *A, unsigned long b)
   int i;
   ArbInt *partial = AI_NewArbInt();
   AI_Resize(partial, 2);
-  partial->dataLen = 1;
   unsigned long carry;
   unsigned long val;
   for (i = A->dataLen - 1; i >= 0; --i) {
@@ -608,12 +616,13 @@ ai_mul_single_stage(ArbInt const *A, unsigned long b)
     }
     else {
       partial->data[0] = val;
+      partial->dataLen = 1;
     }
     old_ans = ans;
     ans = ai_add_unsigned_with_lshift(ans, partial, A->dataLen-1-i);
     /* TODO: Use a memory pool to avoid repeated alloc/frees */
-    printf("Freeing %x\n", old_ans);
-    printf("Partial answer: %s\n", AI_ToString(ans));
+    /* printf("Freeing %x\n", old_ans); */
+    /* printf("Partial answer: %s\n", AI_ToString(ans)); */
     AI_FreeArbInt(old_ans);
   }
   ans->sign = A->sign;

@@ -221,6 +221,7 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
   return ret;
 }
 
+#if 0
 void AI_Resize(ArbInt *val, unsigned long newsize)
 {
   unsigned long *newdata;
@@ -248,7 +249,38 @@ void AI_Resize(ArbInt *val, unsigned long newsize)
     val->dataLen = newsize;
   }
 }
+#else
+void AI_Resize(ArbInt *val, unsigned long newsize)
+{
+  unsigned long *newdata;
 
+  if (val == NULL) {
+    return;
+  }
+
+  if (newsize > AI_MAX_LENGTH) {
+    newsize = AI_MAX_LENGTH;
+  }
+
+  if (newsize <= val->dataLen) {
+    return;
+  }
+
+  newdata = AI_malloc(newsize * sizeof(unsigned long));
+  AI_memset(newdata, 0, newsize * sizeof(unsigned long));  
+
+  if (newdata != NULL) {
+    if (val->data != NULL) {
+      AI_memcpy(newdata + (newsize - val->dataLen),
+		val->data,
+		val->dataLen * sizeof(unsigned long));
+      AI_free(val->data);
+    }
+    val->data = newdata;
+    val->dataLen = newsize;
+  }
+}
+#endif
 void AI_FreeArbInt(ArbInt *aival)
 {
   if (aival->data != NULL) {

@@ -269,5 +269,37 @@ int main()
     printf("Expected:                  0x1FFFFFFFFFFFFFFFE\n");
   }
 
+  { // 9
+    char *s = "0x123456789";
+    char *t = "0x123456789";
+    printf("Mul test %d\n", mul_test++);
+    val_A = AI_NewArbInt_FromString(s);
+    val_B = AI_NewArbInt_FromString(t);
+
+    val_mul = AI_Mul(val_A, val_B);
+
+    printf("0x%s * 0x%s = 0x%s\n",
+           AI_ToString(val_A),
+           AI_ToString(val_B),
+           AI_ToString(val_mul));
+    printf("Expected:                   0x14b66DC326FB98751\n");
+  }
+
+  { // 10
+    char *s = "0x123456789";
+    char *t = "0x12";
+    printf("Mul test %d\n", mul_test++);
+    val_A = AI_NewArbInt_FromString(s);
+    val_B = AI_NewArbInt_FromString(t);
+
+    val_mul = AI_Mul(val_A, val_B);
+
+    printf("0x%s * 0x%s = 0x%s\n",
+           AI_ToString(val_A),
+           AI_ToString(val_B),
+           AI_ToString(val_mul));
+    printf("Expected:            0x147AE147A2\n");
+  }
+
   return 0;
 }

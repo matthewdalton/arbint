@@ -1,3 +1,1 @@
 break main
-break AI_maths.c:62
-  condition $bpnum val == 1
