@@ -37,7 +37,7 @@ int main()
   int mul_test = 1;
   unsigned int mult = 100;
 
-  if (!test_ai_add_unsigned_with_lshift()) {
+  if (!test_all()) {
     printf("Unit tests failed\n");
     return 1;
   }

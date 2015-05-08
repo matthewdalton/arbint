@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -216,8 +217,13 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
     AI_FreeArbInt(ret);
   }
 
-  memcpy(ai->data, lv, ai->dataLen);
+  AI_memcpy(lv, ai->data, ai->dataLen);
   ai_assign_value(ret, lv, ai->dataLen, ai->sign);
+
+  assert(ai->dataLen == ret->dataLen);
+  assert(ai->sign == ai->sign);
+  assert(memcmp(ai->data, ret->data, ai->dataLen) == 0);
+
   return ret;
 }
 

@@ -1,3 +1,4 @@
+/* -*- mode: c; c-basic-offset: 2; -*- */
 #include "arbint.h"
 #include "arbint-priv.h"
 #include "AI_mem.h"
@@ -5,9 +6,12 @@
 #define AI_VAL_TO_CHAR(val) \
   (((val) <= 9) ? ((val) + '0') : ((val) + 55))
 
+static char const *nullstr = "(null)";
 
-char *AI_ToString(ArbInt const *value)
+char const *AI_ToString(ArbInt const *value)
 {
+  if (value == NULL) return nullstr;
+
   size_t i;
   int zero_crop = 1;
   int len =

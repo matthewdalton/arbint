@@ -1,3 +1,5 @@
+/* -*- mode: c; c-basic-offset: 2; -*- */
+
 #include <stdio.h>
 #include <assert.h>
 
@@ -36,6 +38,9 @@ ai_mul_add_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
 
 STATIC ArbInt *
 ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
+
+STATIC ArbInt *
+ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder);
 
 ArbInt *AI_Add(ArbInt const *A, ArbInt const *B)
 {
@@ -168,8 +173,11 @@ int AI_Greater(ArbInt const *A, ArbInt const *B)
 
 int AI_Equal(ArbInt const *A, ArbInt const *B)
 {
-  unsigned long *ptr_a;
-  unsigned long *ptr_b;
+  if (A == NULL || B == NULL) {
+	if (A == B) return 1;
+	else return 0;
+  }
+
 
   if (A->sign != B->sign) {
     return 0;
@@ -761,5 +769,37 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
  error_exit:
   if (ans != NULL)
     AI_FreeArbInt(ans);
+  return NULL;
+}
+
+/**** Division ****/
+
+/*
+ * Calculates integer A/B by subtracting B from A until only the remainder remains.
+ */
+STATIC ArbInt *
+ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
+{
+  if (AI_Greater(B, A)) {
+	*remainder = AI_NewArbInt_FromCopy(A);
+	return AI_NewArbInt();		/* 0 */
+  }
+
+  *remainder = AI_NewArbInt_FromCopy(A);
+  ArbInt *tally = AI_NewArbInt();
+  ArbInt *tally2;
+  printf("        B is %s\n", AI_ToString(B));
+  while (AI_Greater(*remainder, B)) {
+	printf("remainder is %s\n", AI_ToString(*remainder));
+	ArbInt *sub = AI_Sub(*remainder, B);
+	AI_FreeArbInt(*remainder);
+	*remainder = sub;
+
+	tally2 = AI_Add_Value(tally, 1, 1);
+	AI_FreeArbInt(tally);
+	tally = tally2;
+	printf("Counted %s so far...\n", AI_ToString(tally));
+  }
+
   return NULL;
 }

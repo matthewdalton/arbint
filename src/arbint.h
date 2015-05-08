@@ -55,7 +55,7 @@ void AI_FreeArbInt(ArbInt *aival);
 /*
  * Convert to string
  */
-char *AI_ToString(ArbInt const *value);
+char const *AI_ToString(ArbInt const *value);
 
 
 /*********************************************************************
