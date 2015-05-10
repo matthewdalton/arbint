@@ -212,17 +212,17 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
   if (ret == NULL)
     return NULL;
 
-  unsigned long *lv = AI_malloc(ai->dataLen);
+  unsigned long *lv = AI_malloc(ai->dataLen * sizeof(unsigned long));
   if (lv == NULL) {
     AI_FreeArbInt(ret);
   }
 
-  AI_memcpy(lv, ai->data, ai->dataLen);
+  AI_memcpy(lv, ai->data, ai->dataLen * sizeof(unsigned long));
   ai_assign_value(ret, lv, ai->dataLen, ai->sign);
 
   assert(ai->dataLen == ret->dataLen);
   assert(ai->sign == ai->sign);
-  assert(memcmp(ai->data, ret->data, ai->dataLen) == 0);
+  assert(memcmp(ai->data, ret->data, ai->dataLen * sizeof(unsigned long)) == 0);
 
   return ret;
 }

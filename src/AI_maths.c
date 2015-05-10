@@ -788,18 +788,15 @@ ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remain
   *remainder = AI_NewArbInt_FromCopy(A);
   ArbInt *tally = AI_NewArbInt();
   ArbInt *tally2;
-  printf("        B is %s\n", AI_ToString(B));
-  while (AI_Greater(*remainder, B)) {
-	printf("remainder is %s\n", AI_ToString(*remainder));
-	ArbInt *sub = AI_Sub(*remainder, B);
-	AI_FreeArbInt(*remainder);
-	*remainder = sub;
+  while (AI_GreaterOrEqual(*remainder, B)) {
+    ArbInt *sub = AI_Sub(*remainder, B);
+    AI_FreeArbInt(*remainder);
+    *remainder = sub;
 
-	tally2 = AI_Add_Value(tally, 1, 1);
-	AI_FreeArbInt(tally);
-	tally = tally2;
-	printf("Counted %s so far...\n", AI_ToString(tally));
+    tally2 = AI_Add_Value(tally, 1, 1);
+    AI_FreeArbInt(tally);
+    tally = tally2;
   }
 
-  return NULL;
+  return tally;
 }

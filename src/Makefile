@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-g
 
-all: arbint-test tags
+all: arbint-test tags test
 
 arbint: AI_mem.o AI_new.o
 
@@ -12,3 +12,6 @@ clean:
 
 tags:
 	etags *.[ch]
+
+test:
+	./arbint-test
