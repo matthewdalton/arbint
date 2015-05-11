@@ -46,4 +46,35 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
 STATIC ArbInt *
 ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder);
 
+/*
+ * Testing framework
+ */
+#define TEST_HEADER()  
+
+#define TEST_TRUE(exp)                                                  \
+  if (!(exp)) {                                                         \
+    printf("TEST_TRUE Failure (%s, %d): %s\n", __func__, __LINE__, #exp); \
+    goto test_exit;                                                     \
+  }
+
+#define TEST_EQUAL(got, expt, cmp, toStr)                               \
+  if (!(cmp)((got), (expt))) {                                          \
+    printf("TEST_EQUAL Failure (%s, %d):\n", __func__, __LINE__);       \
+    printf("    expected %s, got %s\n", (toStr)((expt)), (toStr)((got))); \
+    goto test_exit;                                                     \
+  }
+
+#define TEST_EQUAL_STR(got, expt)                                       \
+  if (strcmp((got), (expt)) != 0) {                                     \
+    printf("TEST_EQUAL_STR Failure (%s, %d):\n", __func__, __LINE__);   \
+    printf("    expected %s, got %s\n", (expt), (got));                     \
+    goto test_exit;                                                     \
+  }
+
+#define TEST_FOOTER()                           \
+  printf("PASSED : %s\n", __func__);             \
+  return 1;                                     \
+test_exit:                                      \
+ exit(1)
+
 #endif /* __ARBINT_UNITTEST_H__ */

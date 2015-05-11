@@ -33,6 +33,9 @@ char const *AI_ToString(ArbInt const *value)
     shift -= 4;
   }
 
+  *p++ = '0';
+  *p++ = 'x';
+
   for (i = 0; i < value->dataLen; i++) {
     while (shift >= 0) {
       *p++ = AI_VAL_TO_CHAR((*vp >> shift) & 0x0000000F);

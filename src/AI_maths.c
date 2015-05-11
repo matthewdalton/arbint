@@ -545,9 +545,9 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   int index = 0;
   ArbInt *ans;
 
-  printf("Multiplying %24s x\n", AI_ToString(A));
-  printf("            %24s\n", AI_ToString(B));
-  printf("            ------------------------\n");
+  /* printf("Multiplying %24s x\n", AI_ToString(A)); */
+  /* printf("            %24s\n", AI_ToString(B)); */
+  /* printf("            ------------------------\n"); */
 
   ans = AI_NewArbInt();
   if (ans == NULL)
@@ -566,7 +566,7 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
     partial = ai_mul_single_stage(A, B->data[index]);
     old_ans = ans;
     sprintf(buff, debug_str, pad-8*(B->dataLen-1-index));
-    printf(buff, AI_ToString(partial));
+    /* printf(buff, AI_ToString(partial)); */
     ans = ai_add_unsigned_with_lshift(ans, partial, B->dataLen-1-index);
     AI_FreeArbInt(old_ans);
   }

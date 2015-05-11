@@ -137,9 +137,9 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
     }
     while (*p != '\0' && *p >= '0' && *p <= '9') {
       ArbInt *tmp = AI_Mul_Value(aival, 10, 1);
-      printf("Mul by 10 gives %s\n", AI_ToString(tmp));
+      /* printf("Mul by 10 gives %s\n", AI_ToString(tmp)); */
       ArbInt *tmp2 = AI_Add_Value(tmp, AI_CHAR_TO_VAL(*p), aival->sign);
-      printf("Adding %d gives %s\n", AI_CHAR_TO_VAL(*p), AI_ToString(tmp2));
+      /* printf("Adding %d gives %s\n", AI_CHAR_TO_VAL(*p), AI_ToString(tmp2)); */
       AI_FreeArbInt(aival);
       AI_FreeArbInt(tmp);
       aival = tmp2;

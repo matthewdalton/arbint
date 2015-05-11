@@ -26,6 +26,36 @@ void loop_sub(ArbInt **ans, ArbInt *op, unsigned long mult)
   }
 }
 
+int test_AI_FromString_ToString__short_string(void) {
+  TEST_HEADER();
+  char *s = "0x2BDC545D6B4B88";   /* 12345678901234567 decimal */
+  ArbInt *val = AI_NewArbInt_FromString(s);
+  char const *str = AI_ToString(val);
+
+  TEST_EQUAL_STR(str, s);
+
+  TEST_FOOTER();
+}
+
+int test_AI_FromString_ToString__long_string(void) {
+  TEST_HEADER();
+  char *s = "0x12345678901234567890123456789012345678901234567890123456789";
+  ArbInt *val = AI_NewArbInt_FromString(s);
+  char const *str = AI_ToString(val);
+
+  TEST_EQUAL_STR(str, s);
+
+  TEST_FOOTER();
+}
+
+int test_all_2()
+{
+  return
+    test_AI_FromString_ToString__short_string() &&
+    test_AI_FromString_ToString__long_string() &&
+    1;
+}
+
 int main()
 {
   ArbInt *val_A;
@@ -42,12 +72,12 @@ int main()
     return 1;
   }
 
-  {
-    //char *s = "12345678901234567890123456789012345678901234567890123456789";
-    char *s = "12345678901234567";
-    val_A = AI_NewArbInt_FromString(s);
-    printf("Assigned  %s,\nprints as 0x%s\n", s, AI_ToString(val_A));
+  if (!test_all_2()) {
+    printf("Unit tests failed\n");
+    return 1;
   }
+
+  return 0;
 
   val_A = AI_NewArbInt_FromLong(0x10000000);
   val_B = AI_NewArbInt_FromLong(0x7FFFFFFF);

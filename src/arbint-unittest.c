@@ -8,33 +8,13 @@
 
 #include "arbint-unittest.h"
 
-#define TEST_HEADER()  
-
-#define TEST_TRUE(exp)                                                  \
-  if (!(exp)) {                                                         \
-    printf("TEST_TRUE Failure (%s, %d): %s\n", __func__, __LINE__, #exp); \
-    goto test_exit;                                                     \
-  }
-
-#define TEST_EQUAL(got, expt, cmp, toStr)                               \
-  if (!(cmp)((got), (expt))) {                                          \
-    printf("TEST_EQUAL Failure (%s, %d):\n", __func__, __LINE__);       \
-    printf("    expected %s, got %s\n", (toStr)((expt)), (toStr)((got))); \
-    goto test_exit;                                                     \
-  }
-
-#define TEST_FOOTER()                           \
-  printf("%s: PASSED\n", __func__);             \
-  return 1;                                     \
-test_exit:                                      \
- exit(1)
-
 /*
  * Functions return non-zero on success
  */
 
 int test_ai_add_unsigned_with_lshift(void)
 {
+  TEST_HEADER();
   ArbInt *A;
   ArbInt *B;
   ArbInt *C;
@@ -47,10 +27,11 @@ int test_ai_add_unsigned_with_lshift(void)
 
   C = ai_add_unsigned_with_lshift(A, B, B_shift);
   expected = AI_NewArbInt_FromString("0xBEEF00000000DEAD");
-  printf("Result:   %s\n", AI_ToString(C));
-  printf("Expected: %s\n", AI_ToString(expected));
-  if (!AI_Equal(C, expected))
-    return 0;
+  /* printf("Result:   %s\n", AI_ToString(C)); */
+  /* printf("Expected: %s\n", AI_ToString(expected)); */
+  /* if (!AI_Equal(C, expected)) */
+  /*   return 0; */
+  TEST_EQUAL(C, expected, AI_Equal, AI_ToString);
 
   AI_FreeArbInt(A);
   AI_FreeArbInt(B);
@@ -64,12 +45,15 @@ int test_ai_add_unsigned_with_lshift(void)
 
   C = ai_add_unsigned_with_lshift(A, B, B_shift);
   expected = AI_NewArbInt_FromString("0x9999888878783434565600000000");
-  printf("Result:   %s\n", AI_ToString(C));
-  printf("Expected: %s\n", AI_ToString(expected));
-  if (!AI_Equal(C, expected))
-    return 0;
+  /* printf("Result:   %s\n", AI_ToString(C)); */
+  /* printf("Expected: %s\n", AI_ToString(expected)); */
+  /* if (!AI_Equal(C, expected)) */
+  /*   return 0; */
 
-  return 1;
+  /* return 1; */
+  TEST_EQUAL(C, expected, AI_Equal, AI_ToString);
+
+  TEST_FOOTER();
 }
 
 int test_ai_div_unsigned_by_subtraction__even_divide(void)
