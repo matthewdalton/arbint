@@ -11,7 +11,7 @@ static
 ArbInt *ai_new_empty(void);
 
 static void
-ai_assign_value(ArbInt *ai, unsigned long *value, unsigned long len, int sign);
+ai_assign_value(ArbInt *ai, aibase_t *value, unsigned long len, int sign);
 
 #define AI_CHAR_TO_VAL(chr) \
   (((chr) <= '9') ? ((chr) - '0') : ((chr) - 'A' + 10))
@@ -33,10 +33,10 @@ ArbInt *AI_NewArbInt(void)
 ArbInt *AI_NewArbInt_FromString(char const *value)
 {
   ArbInt *aival;
-  int len;
+  long len;
   int is_hex = 0;
   char const *p;
-  unsigned long *d;
+  aibase_t *d;
   int nibbles;
   char c;
   int padding;
@@ -81,12 +81,12 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
     nibbles = aival->dataLen * 8 - len;
     //nibbles = 0;
 
-    aival->data = AI_malloc(aival->dataLen * sizeof(unsigned long));
+    aival->data = AI_malloc(aival->dataLen * sizeof(aibase_t));
     if (aival->data == NULL) {
       goto error_exit;
     }
 
-    AI_memset(aival->data, 0, aival->dataLen * sizeof(unsigned long));
+    AI_memset(aival->data, 0, aival->dataLen * sizeof(aibase_t));
 
     /*
      * Assign the string, depending on format
@@ -156,7 +156,7 @@ ArbInt *AI_NewArbInt_FromString(char const *value)
 /*
  * Initialise using various value types
  */
-ArbInt *AI_NewArbInt_FromLong(long value)
+ArbInt *AI_NewArbInt_FromLong(int32_t value)
 {
   int sign = 1;
 
@@ -165,20 +165,20 @@ ArbInt *AI_NewArbInt_FromLong(long value)
     sign = -1;
   }
 
-  return AI_NewArbInt_FromValue((unsigned long)value, sign);
+  return AI_NewArbInt_FromValue((aibase_t)value, sign);
 }
 
-ArbInt *AI_NewArbInt_FromULong(unsigned long value)
+ArbInt *AI_NewArbInt_From32(int32_t value)
 {
-  return AI_NewArbInt_FromValue(value, 1);
+  return AI_NewArbInt_FromLong(value);
 }
 
-ArbInt *AI_NewArbInt_FromValue(unsigned long value, int sign)
+ArbInt *AI_NewArbInt_FromValue(aibase_t value, int sign)
 {
   ArbInt *ai = ai_new_empty();
 
   if (ai != NULL) {
-    unsigned long *lv = AI_malloc(sizeof(unsigned long));
+    aibase_t *lv = AI_malloc(sizeof(aibase_t));
     if (lv == NULL) {
       goto error_exit;
     }
@@ -197,32 +197,23 @@ ArbInt *AI_NewArbInt_FromValue(unsigned long value, int sign)
   return NULL;
 }
 
-/*
- * Initialise to value held in a size_t, with a separate sign indicator
- */
-ArbInt *AI_NewArbInt_FromSizeT(size_t value, int sign)
-{
-  /* unimplemented */
-  return NULL;
-}
-
 ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
 {
   ArbInt *ret = ai_new_empty();
   if (ret == NULL)
     return NULL;
 
-  unsigned long *lv = AI_malloc(ai->dataLen * sizeof(unsigned long));
+  aibase_t *lv = AI_malloc(ai->dataLen * sizeof(aibase_t));
   if (lv == NULL) {
     AI_FreeArbInt(ret);
   }
 
-  AI_memcpy(lv, ai->data, ai->dataLen * sizeof(unsigned long));
+  AI_memcpy(lv, ai->data, ai->dataLen * sizeof(aibase_t));
   ai_assign_value(ret, lv, ai->dataLen, ai->sign);
 
   assert(ai->dataLen == ret->dataLen);
   assert(ai->sign == ai->sign);
-  assert(memcmp(ai->data, ret->data, ai->dataLen * sizeof(unsigned long)) == 0);
+  assert(memcmp(ai->data, ret->data, ai->dataLen * sizeof(aibase_t)) == 0);
 
   return ret;
 }
@@ -230,7 +221,7 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
 #if 0
 void AI_Resize(ArbInt *val, unsigned long newsize)
 {
-  unsigned long *newdata;
+  aibase_t *newdata;
 
   if (val == NULL) {
     return;
@@ -244,11 +235,11 @@ void AI_Resize(ArbInt *val, unsigned long newsize)
     return;
   }
 
-  newdata = AI_malloc(newsize * sizeof(unsigned long));
+  newdata = AI_malloc(newsize * sizeof(aibase_t));
 
   if (newdata != NULL) {
     if (val->data != NULL) {
-      AI_memcpy(newdata, val->data, val->dataLen * sizeof(unsigned long));
+      AI_memcpy(newdata, val->data, val->dataLen * sizeof(aibase_t));
       AI_free(val->data);
     }
     val->data = newdata;
@@ -258,7 +249,7 @@ void AI_Resize(ArbInt *val, unsigned long newsize)
 #else
 void AI_Resize(ArbInt *val, unsigned long newsize)
 {
-  unsigned long *newdata;
+  aibase_t *newdata;
 
   if (val == NULL) {
     return;
@@ -272,14 +263,14 @@ void AI_Resize(ArbInt *val, unsigned long newsize)
     return;
   }
 
-  newdata = AI_malloc(newsize * sizeof(unsigned long));
-  AI_memset(newdata, 0, newsize * sizeof(unsigned long));  
+  newdata = AI_malloc(newsize * sizeof(aibase_t));
+  AI_memset(newdata, 0, newsize * sizeof(aibase_t));  
 
   if (newdata != NULL) {
     if (val->data != NULL) {
       AI_memcpy(newdata + (newsize - val->dataLen),
 		val->data,
-		val->dataLen * sizeof(unsigned long));
+		val->dataLen * sizeof(aibase_t));
       AI_free(val->data);
     }
     val->data = newdata;
@@ -319,7 +310,7 @@ ArbInt *ai_new_empty(void)
 }
 
 static void
-ai_assign_value(ArbInt *ai, unsigned long *value, unsigned long len, int sign)
+ai_assign_value(ArbInt *ai, aibase_t *value, unsigned long len, int sign)
 {
   assert(value != NULL);
   assert(len > 0);

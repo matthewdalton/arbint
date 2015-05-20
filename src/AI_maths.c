@@ -7,7 +7,7 @@
 #include "arbint-priv.h"
 
 STATIC int
-ai_get_hsb_position(unsigned long val);
+ai_get_hsb_position(aibase_t val);
 
 STATIC ArbInt *
 ai_add_unsigned(ArbInt const *A, ArbInt const *B);
@@ -15,23 +15,23 @@ ai_add_unsigned(ArbInt const *A, ArbInt const *B);
 STATIC ArbInt *
 ai_sub_unsigned(ArbInt const *A, ArbInt const *B);
 
-STATIC unsigned long
-ai_add_single_carry(unsigned long a, unsigned long b, int *carry);
+STATIC aibase_t
+ai_add_single_carry(aibase_t a, aibase_t b, int *carry);
 
-STATIC unsigned long
-ai_sub_single_carry(unsigned long a, unsigned long b, int *carry);
+STATIC aibase_t
+ai_sub_single_carry(aibase_t a, aibase_t b, int *carry);
 
 STATIC int
 ai_compare_matchinglength(ArbInt const *A, ArbInt const *B);
 
-STATIC unsigned long
-ai_mul_single_carry(unsigned long a, unsigned long b, unsigned long *carry);
+STATIC aibase_t
+ai_mul_single_carry(aibase_t a, aibase_t b, int *carry);
 
 STATIC ArbInt *
 ai_mul_signed(ArbInt const *A, ArbInt const *B);
 
 STATIC ArbInt *
-ai_mul_single_stage(ArbInt const *A, unsigned long b);
+ai_mul_single_stage(ArbInt const *A, aibase_t b);
 
 STATIC ArbInt *
 ai_mul_add_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
@@ -133,8 +133,8 @@ ArbInt *AI_Abs(ArbInt const *A)
 int AI_Greater(ArbInt const *A, ArbInt const *B)
 {
   int invert;
-  unsigned long *ptr_a;
-  unsigned long *ptr_b;
+  aibase_t *ptr_a;
+  aibase_t *ptr_b;
 
   if (A->sign != B->sign) {
     if (A->sign == 1) {
@@ -197,8 +197,8 @@ int AI_Less(ArbInt const *A, ArbInt const *B)
    * performance reasons.
    */
   int invert;
-  unsigned long *ptr_a;
-  unsigned long *ptr_b;
+  aibase_t *ptr_a;
+  aibase_t *ptr_b;
 
   if (A->sign != B->sign) {
     if (A->sign == -1) {
@@ -252,7 +252,7 @@ ArbInt *AI_Neg(ArbInt const *A)
  *********************************************************************/
 
 STATIC int
-ai_get_hsb_position(unsigned long val)
+ai_get_hsb_position(aibase_t val)
 {
   int bit = 0;
   unsigned short val_short;
@@ -414,10 +414,10 @@ ai_sub_unsigned(ArbInt const *A, ArbInt const *B)
  * @param[in,out] carry		Carry must be valid and set to either 0 or 1
  *				as input. Will be set to 0 or 1 on return.
  */
-STATIC unsigned long
-ai_add_single_carry(unsigned long a, unsigned long b, int *carry)
+STATIC aibase_t
+ai_add_single_carry(aibase_t a, aibase_t b, int *carry)
 {
-  unsigned long ans;
+  aibase_t ans;
   int inp_carry = *carry;
 
   assert(carry != NULL);
@@ -441,10 +441,10 @@ ai_add_single_carry(unsigned long a, unsigned long b, int *carry)
 }
 
 
-STATIC unsigned long
-ai_sub_single_carry(unsigned long a, unsigned long b, int *carry)
+STATIC aibase_t
+ai_sub_single_carry(aibase_t a, aibase_t b, int *carry)
 {
-  unsigned long ans;
+  aibase_t ans;
   int inp_carry = *carry;
 
   assert(carry != NULL);
@@ -472,8 +472,8 @@ ai_sub_single_carry(unsigned long a, unsigned long b, int *carry)
 STATIC int
 ai_compare_matchinglength(ArbInt const *A, ArbInt const *B)
 {
-  unsigned long *ptr_a;
-  unsigned long *ptr_b;
+  aibase_t *ptr_a;
+  aibase_t *ptr_b;
   size_t len;
 
   assert(A->dataLen == B->dataLen);
@@ -490,15 +490,15 @@ ai_compare_matchinglength(ArbInt const *A, ArbInt const *B)
 }
 
 
-STATIC unsigned long
-ai_mul_single_carry(unsigned long a, unsigned long b, unsigned long *carry)
+STATIC aibase_t
+ai_mul_single_carry(aibase_t a, aibase_t b, int *carry)
 {
-  unsigned long result16_1;
-  unsigned long result16_2;
-  unsigned long result16_3;
-  unsigned long result16_4;
-  unsigned long final_result = 0;
-  unsigned long final_carry = 0;
+  aibase_t result16_1;
+  aibase_t result16_2;
+  aibase_t result16_3;
+  aibase_t result16_4;
+  aibase_t final_result = 0;
+  int final_carry = 0;
 
 #define HIGH16(val) (((val) & 0xFFFF0000) >> 16)
 #define LOW16(val)  ((val) & 0x0000FFFF)
@@ -540,8 +540,8 @@ ai_mul_single_carry(unsigned long a, unsigned long b, unsigned long *carry)
 STATIC ArbInt *
 ai_mul_signed(ArbInt const *A, ArbInt const *B)
 {
-  unsigned long result;
-  unsigned long carry;
+  aibase_t result;
+  int carry;
   int index = 0;
   ArbInt *ans;
 
@@ -605,7 +605,7 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
 }
 
 STATIC ArbInt *
-ai_mul_single_stage(ArbInt const *A, unsigned long b)
+ai_mul_single_stage(ArbInt const *A, aibase_t b)
 {
   ArbInt *ans = AI_NewArbInt();	/* == 0 */
   ArbInt *old_ans;
@@ -613,8 +613,8 @@ ai_mul_single_stage(ArbInt const *A, unsigned long b)
   int i;
   ArbInt *partial = AI_NewArbInt();
   AI_Resize(partial, 2);
-  unsigned long carry;
-  unsigned long val;
+  int carry;
+  aibase_t val;
   for (i = A->dataLen - 1; i >= 0; --i) {
     val = ai_mul_single_carry(A->data[i], b, &carry);
     if (carry) {
@@ -760,7 +760,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   if (carry > 0) {
     AI_Resize(ans, ans->dataLen + 1);
     /* error check? */
-    assert(0);			/* Disabling as I suspect a bug */
+    /* assert(0);			/\* Disabling as I suspect a bug *\/ */
     ans->data[0] = carry;
   }
 

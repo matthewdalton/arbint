@@ -22,11 +22,11 @@ int test_ai_add_unsigned_with_lshift(void)
   ArbInt *expected;
 
   A = AI_NewArbInt_FromLong(0x0000DEAD);
-  B = AI_NewArbInt_FromLong(0xBEEF0000);
+  B = AI_NewArbInt_FromLong(0x0BEEF000);
   B_shift = 1;
 
   C = ai_add_unsigned_with_lshift(A, B, B_shift);
-  expected = AI_NewArbInt_FromString("0xBEEF00000000DEAD");
+  expected = AI_NewArbInt_FromString("0x0BEEF0000000DEAD");
   /* printf("Result:   %s\n", AI_ToString(C)); */
   /* printf("Expected: %s\n", AI_ToString(expected)); */
   /* if (!AI_Equal(C, expected)) */

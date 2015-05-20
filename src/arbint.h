@@ -7,8 +7,10 @@
 #define STATIC
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 typedef struct arbint	ArbInt;
+typedef uint32_t        aibase_t;
 
 
 /*********************************************************************
@@ -28,13 +30,13 @@ ArbInt *AI_NewArbInt_FromString(char const *value);
 /*
  * Initialise to value held in a long
  */
-ArbInt *AI_NewArbInt_FromLong(long value);
+ArbInt *AI_NewArbInt_FromLong(int32_t value); /* deprecated */
+ArbInt *AI_NewArbInt_From32(int32_t value);
 
 /*
  * Initialise to value held in a size_t, with a separate sign indicator
  */
-ArbInt *AI_NewArbInt_FromValue(unsigned long value, int sign);
-ArbInt *AI_NewArbInt_FromSizeT(size_t value, int sign);
+ArbInt *AI_NewArbInt_FromValue(aibase_t value, int sign);
 
 /*
  * Copy constructor

@@ -15,10 +15,10 @@ char const *AI_ToString(ArbInt const *value)
   size_t i;
   int zero_crop = 1;
   int len =
-    2 * value->dataLen * sizeof(unsigned long) + 1 + (value->sign == 0 ? 0 : 1);
+    2 * value->dataLen * sizeof(aibase_t) + 1 + (value->sign == 0 ? 0 : 1);
   char *str = (char *)AI_malloc(len);
   char *p = str;
-  unsigned long *vp = value->data;
+  aibase_t *vp = value->data;
   int shift = 28;
 
   if (p == NULL) {

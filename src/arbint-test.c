@@ -48,11 +48,63 @@ int test_AI_FromString_ToString__long_string(void) {
   TEST_FOOTER();
 }
 
+int test_addition__overflow(void) {
+  TEST_HEADER();
+  ArbInt *val_A;
+  ArbInt *val_B;
+  ArbInt *val_C;
+
+  val_A = AI_NewArbInt_FromString("0x10000000");
+  val_B = AI_NewArbInt_FromString("0xF0000000");
+
+  val_C = AI_Add(val_A, val_B);
+  ArbInt *expt = AI_NewArbInt_FromString("0x100000000");
+  TEST_EQUAL(val_C, expt, AI_Equal, AI_ToString);
+
+  TEST_FOOTER();
+}
+
+int test_addition__basic(void) {
+  TEST_HEADER();
+
+  ArbInt *val_A;
+  ArbInt *val_B;
+  ArbInt *val_C;
+  ArbInt *val_plus;
+  unsigned int mult = 100;
+
+  val_A = AI_NewArbInt_FromLong(0x10000000);
+  val_B = AI_NewArbInt_FromLong(0x7FFFFFFF);
+  val_C = AI_NewArbInt_FromLong(2);
+
+  /* printf("val_A: %s\n", AI_ToString(val_A)); */
+  /* printf("val_B: %s\n", AI_ToString(val_B)); */
+
+  val_plus = AI_Add(val_A, val_B);
+  val_plus = AI_Add(val_plus, val_C);
+
+  ArbInt *expected = AI_NewArbInt_FromString("0x90000001");
+
+  /* printf("val_A + val_B = %s\n", AI_ToString(val_plus)); */
+  TEST_EQUAL(val_plus, expected, AI_Equal, AI_ToString);
+  AI_FreeArbInt(expected);
+
+  loop_add(&val_plus, val_A, mult);
+
+  /* printf("val_A * %u = %s\n", mult, AI_ToString(val_plus)); */
+  expected = AI_NewArbInt_FromString("0x640000000");
+  TEST_EQUAL(val_plus, expected, AI_Equal, AI_ToString);
+
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
     test_AI_FromString_ToString__short_string() &&
     test_AI_FromString_ToString__long_string() &&
+    test_addition__overflow() &&
+    test_addition__basic() &&
     1;
 }
 
@@ -77,7 +129,7 @@ int main()
     return 1;
   }
 
-  return 0;
+  /* return 0; */
 
   val_A = AI_NewArbInt_FromLong(0x10000000);
   val_B = AI_NewArbInt_FromLong(0x7FFFFFFF);
