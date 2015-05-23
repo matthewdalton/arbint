@@ -293,7 +293,7 @@ int test_multiplication__basic()
     val_B = AI_NewArbInt_FromString(t);
 
     val_mul = AI_Mul(val_A, val_B);
-    expected = AI_NewArbInt_FromString("0x14b66DC326FB98751");
+    expected = AI_NewArbInt_FromString("0x14B66DC326FB98751");
     TEST_EQUAL(val_mul, expected, AI_Equal, AI_ToString);
   }
 
