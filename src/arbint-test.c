@@ -311,6 +311,94 @@ int test_multiplication__basic()
   TEST_FOOTER();
 }
 
+int test_division__simple()
+{
+  TEST_HEADER();
+
+  ArbInt *numerator;
+  ArbInt *denominator;
+  ArbInt *div;
+  ArbInt *mod;
+  ArbInt *expected;
+  ArbInt *exp_mod;
+
+  {
+    numerator = AI_NewArbInt_FromLong(12560);
+    denominator = AI_NewArbInt_FromLong(8);
+    expected = AI_NewArbInt_FromLong(1570);
+    div = AI_Div(numerator, denominator, &mod);
+    TEST_TRUE(AI_IsZero(mod));
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+  }
+
+  /* { */
+  /*   ArbInt *mul; */
+  /*   numerator = AI_NewArbInt_FromLong(4000000000); */
+  /*   denominator = AI_NewArbInt_FromLong(2); */
+  /*   expected = AI_NewArbInt_FromString("0x1DCD65000"); // 8 000 000 000 */
+  /*   mul = AI_Mul(numerator, denominator); */
+  /*   printf("%s\n", AI_ToString(mul)); */
+  /*   TEST_EQUAL(mul, expected, AI_Equal, AI_ToString); */
+  /*   div = AI_Div(mul, denominator, &mod); */
+  /*   TEST_EQUAL(div, numerator, AI_Equal, AI_ToString); */
+  /* } */
+
+  /* { */
+  /*   ArbInt *mul; */
+  /*   numerator = AI_NewArbInt_FromString( "0x1000000"); */
+  /*   denominator = AI_NewArbInt_FromLong(0x100); */
+  /*   expected = AI_NewArbInt_FromString("0x100000000"); */
+  /*   mul = AI_Mul(numerator, denominator); */
+  /*   printf("%s\n", AI_ToString(mul)); */
+  /*   TEST_EQUAL(mul, expected, AI_Equal, AI_ToString); */
+  /*   div = AI_Div(mul, denominator, &mod); */
+  /*   TEST_EQUAL(div, numerator, AI_Equal, AI_ToString); */
+  /* } */
+
+  {
+    numerator = AI_NewArbInt_FromValue(50000, 1);
+    denominator = AI_NewArbInt_FromValue(67, 1); /* 746 remainder 18 */
+    expected = AI_NewArbInt_FromValue(746, 1);
+    exp_mod = AI_NewArbInt_FromValue(18, 1);
+    div = AI_Div(numerator, denominator, &mod);
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+    TEST_EQUAL(mod, exp_mod, AI_Equal, AI_ToString);
+  }
+
+  {
+    numerator = AI_NewArbInt_FromValue(50000, -1);
+    denominator = AI_NewArbInt_FromValue(67, 1); /* -746 remainder -49 */
+    expected = AI_NewArbInt_FromValue(746, -1);
+    exp_mod = AI_NewArbInt_FromValue(49, 1);
+    div = AI_Div(numerator, denominator, &mod);
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+    TEST_EQUAL(mod, exp_mod, AI_Equal, AI_ToString);
+  }
+
+  {
+    numerator = AI_NewArbInt_FromString("0x7048860ddf79");
+    TEST_TRUE(AI_Greater(numerator, AI_NewArbInt()));
+    denominator = AI_NewArbInt_FromValue(45678, 1);
+    TEST_TRUE(AI_Greater(denominator, AI_NewArbInt()));
+    expected = AI_NewArbInt_FromValue(2702762577, 1);
+    TEST_TRUE(AI_Greater(expected, AI_NewArbInt()));
+    div = AI_Div(numerator, denominator, &mod);
+    /* exp_mod = AI_NewArbInt_FromLong(20139); */
+
+    exp_mod = AI_Sub(numerator, AI_Mul(expected, denominator));
+
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+    TEST_EQUAL(mod, exp_mod, AI_Equal, AI_ToString);
+  }
+
+  TEST_FOOTER();
+}
+
+int test_division__by_zero()
+{
+  return 1;
+}
+
 int test_all_2()
 {
   return
@@ -321,6 +409,8 @@ int test_all_2()
     test_subtraction__basic() &&
     test_from_string__basic() &&
     test_multiplication__basic() &&
+    test_division__simple() &&
+    test_division__by_zero() &&
     1;
 }
 

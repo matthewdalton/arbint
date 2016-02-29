@@ -288,6 +288,27 @@ void AI_FreeArbInt(ArbInt *aival)
   }
 }
 
+void *AI_Normalise(ArbInt *val)
+{
+  unsigned long dataLen = val->dataLen;
+  unsigned long i;
+  for (i = 0; i < val->dataLen; i++) {
+    if (val->data[i] != 0)
+      break;
+  }
+  if (i == 0 || (i == 1 && dataLen == 1 && val->data[0] == 0))
+    return val;
+
+  aibase_t *orig = val->data;
+  val->data += i;
+  val->dataLen -= i;;
+  ArbInt *normalised = AI_NewArbInt_FromCopy(val);
+  val->data -= i;
+  val->dataLen += i;
+  ai_assign_value(val, normalised->data, normalised->dataLen, normalised->sign);
+  return val;
+}
+
 /*********************************************************************
  "Package local" functions
  *********************************************************************/
