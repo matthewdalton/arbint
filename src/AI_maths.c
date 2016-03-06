@@ -40,6 +40,12 @@ STATIC ArbInt *
 ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
 
 STATIC ArbInt *
+ai_div_find_largest_multiple_smaller_than(ArbInt const *multi, ArbInt const *bigger);
+
+STATIC ArbInt *
+ai_div_unsigned_by_scaled_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder);
+
+STATIC ArbInt *
 ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder);
 
 ArbInt *AI_Add(ArbInt const *A, ArbInt const *B)
@@ -66,6 +72,14 @@ ArbInt *AI_Add_Value(ArbInt const *A, unsigned long val, int sign)
 {
   ArbInt *B = AI_NewArbInt_FromValue(val, sign);
   ArbInt *res = AI_Add(A, B);
+  AI_FreeArbInt(B);
+  return res;
+}
+
+ArbInt *AI_AddAndFree(ArbInt *A, ArbInt *B)
+{
+  ArbInt *res = AI_Add(A, B);
+  AI_FreeArbInt(A);
   AI_FreeArbInt(B);
   return res;
 }
@@ -102,6 +116,14 @@ ArbInt *AI_Sub(ArbInt const *A, ArbInt const *B)
   }
 }
 
+ArbInt *AI_SubAndFree(ArbInt *A, ArbInt *B)
+{
+  ArbInt *res = AI_Sub(A, B);
+  AI_FreeArbInt(A);
+  AI_FreeArbInt(B);
+  return res;
+}
+
 ArbInt *AI_Mul(ArbInt const *A, ArbInt const *B)
 {
   ArbInt *ans = ai_mul_signed(A, B);
@@ -121,6 +143,14 @@ ArbInt *AI_Mul_Value(ArbInt const *A, unsigned long val, int sign)
   return res;
 }
 
+ArbInt *AI_MulAndFree(ArbInt *A, ArbInt *B)
+{
+  ArbInt *res = AI_Mul(A, B);
+  AI_FreeArbInt(A);
+  AI_FreeArbInt(B);
+  return res;
+}
+
 ArbInt *AI_Div(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
 {
   if (A->sign == B->sign) {
@@ -134,7 +164,8 @@ ArbInt *AI_Div(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
       B = &posB;
       mod_sign = -1;
     }
-    ArbInt *result = ai_div_unsigned_by_subtraction(A, B, remainder);
+    /* ArbInt *result = ai_div_unsigned_by_subtraction(A, B, remainder); */
+    ArbInt *result = ai_div_unsigned_by_scaled_subtraction(A, B, remainder);
     (*remainder)->sign = mod_sign;
     return result;
   } else {
@@ -145,7 +176,7 @@ ArbInt *AI_Div(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
     A = &posA;
     B = &posB;
     ArbInt *posRemainder;
-    ArbInt *result = ai_div_unsigned_by_subtraction(A, B, &posRemainder);
+    ArbInt *result = ai_div_unsigned_by_scaled_subtraction(A, B, &posRemainder);
     result->sign = -1;
     *remainder = AI_Sub(&posB, posRemainder);
     (*remainder)->sign = 1;
@@ -808,6 +839,66 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
 
 /**** Division ****/
 
+STATIC ArbInt *
+ai_div_find_largest_multiple_smaller_than(ArbInt const *multi, ArbInt const *bigger)
+{
+  ArbInt *largest = AI_NewArbInt_FromCopy(multi);
+  ArbInt *res;
+  ArbInt *multiplier = AI_NewArbInt_FromLong(1);
+  ArbInt *mres;
+  // Quick'n'dirty version
+  while (1) {
+    res = AI_Mul_Value(largest, 2, 1);
+    mres = AI_Mul_Value(multiplier, 2, 1);
+    if (AI_Greater(res, bigger)) {
+      return multiplier;
+    }
+    AI_FreeArbInt(largest);
+    largest = res;
+    AI_FreeArbInt(multiplier);
+    multiplier = mres;
+  }
+  return NULL;                  /* Unreachable */
+}
+
+/*
+ * Calculates integer A/B by subtracting scaled values of B from A.
+ *
+ * A and B must be unsigned values
+ */
+STATIC ArbInt *
+ai_div_unsigned_by_scaled_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
+{
+  printf("Dividing %s by %s (scaled)\n", AI_ToString(A), AI_ToString(B));
+  if (AI_IsZero(B)) {
+    return NULL;
+  }
+
+  *remainder = AI_NewArbInt_FromCopy(A);
+
+  if (AI_Greater(B, A)) {
+    return AI_NewArbInt();      /* 0 */
+  }
+
+  ArbInt *multiple;
+  ArbInt *result = AI_NewArbInt_FromLong(0);
+  ArbInt *tally;
+  ArbInt *tmp2;
+  ArbInt *rmdr;
+  while (AI_GreaterOrEqual(*remainder, B)) {
+    /* Find the largest base-2 multiple of B smaller than A */
+    multiple = ai_div_find_largest_multiple_smaller_than(B, *remainder);
+    tally = AI_Mul(multiple, B);
+    /* How many of these fit into A? */
+    tmp2 = ai_div_unsigned_by_subtraction(*remainder, tally, &rmdr);
+    multiple = AI_MulAndFree(multiple, tmp2);
+    tally = AI_Mul(multiple, B);
+    result = AI_AddAndFree(result, multiple);
+    *remainder = AI_SubAndFree(*remainder, tally);
+  }
+  return result;
+}
+
 /*
  * Calculates integer A/B by subtracting B from A until only the remainder remains.
  */
@@ -819,12 +910,12 @@ ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remain
     return NULL;
   }
 
+  *remainder = AI_NewArbInt_FromCopy(A);
+
   if (AI_Greater(B, A)) {
-	*remainder = AI_NewArbInt_FromCopy(A);
-	return AI_NewArbInt();		/* 0 */
+    return AI_NewArbInt();      /* 0 */
   }
 
-  *remainder = AI_NewArbInt_FromCopy(A);
   ArbInt *tally = AI_NewArbInt();
   ArbInt *tally2;
   while (AI_GreaterOrEqual(*remainder, B)) {
