@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "arbint.h"
 #include "arbint-unittest.h"
@@ -399,6 +400,41 @@ int test_division__by_zero()
   return 1;
 }
 
+int test_string__dec()
+{
+  TEST_HEADER();
+
+  {
+    char *hex = "0x7048860ddf79";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *dec = AI_ToStringDec(val);
+    TEST_EQUAL_STR(dec, "123456789012345");
+  }
+
+  {
+    char *hex = "0x7048860d";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *dec = AI_ToStringDec(val);
+    TEST_EQUAL_STR(dec, "1883801101");
+  }
+
+  {
+    char *hex = "0x7048860d";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *bin = AI_ToStringBase(val, 2, (strlen(hex) - 2) * 4);
+    TEST_EQUAL_STR(bin, "1110000010010001000011000001101");
+  }
+
+  {
+    char *hex = "-0x7048860d";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *dec = AI_ToStringDec(val);
+    TEST_EQUAL_STR(dec, "-1883801101");
+  }
+
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
@@ -411,6 +447,7 @@ int test_all_2()
     test_multiplication__basic() &&
     test_division__simple() &&
     test_division__by_zero() &&
+    test_string__dec() &&
     1;
 }
 

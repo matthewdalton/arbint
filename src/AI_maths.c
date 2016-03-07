@@ -185,6 +185,14 @@ ArbInt *AI_Div(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
   }
 }
 
+ArbInt *AI_DivAndFree(ArbInt *A, ArbInt *B, ArbInt **remainder)
+{
+  ArbInt *res = AI_Div(A, B, remainder);
+  AI_FreeArbInt(A);
+  AI_FreeArbInt(B);
+  return res;
+}
+
 ArbInt *AI_Abs(ArbInt const *A)
 {
   ArbInt *ret = AI_NewArbInt();
@@ -869,7 +877,7 @@ ai_div_find_largest_multiple_smaller_than(ArbInt const *multi, ArbInt const *big
 STATIC ArbInt *
 ai_div_unsigned_by_scaled_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
 {
-  printf("Dividing %s by %s (scaled)\n", AI_ToString(A), AI_ToString(B));
+  /* printf("Dividing %s by %s (scaled)\n", AI_ToString(A), AI_ToString(B)); */
   if (AI_IsZero(B)) {
     return NULL;
   }
@@ -905,7 +913,7 @@ ai_div_unsigned_by_scaled_subtraction(ArbInt const *A, ArbInt const *B, ArbInt *
 STATIC ArbInt *
 ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
 {
-  printf("Dividing %s by %s\n", AI_ToString(A), AI_ToString(B));
+  /* printf("Dividing %s by %s\n", AI_ToString(A), AI_ToString(B)); */
   if (AI_IsZero(B)) {
     return NULL;
   }
@@ -939,7 +947,7 @@ ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remain
     tally = tally2;
   }
 
-  printf("Done! Returning %s\n", AI_ToString(tally));
+  /* printf("Done! Returning %s\n", AI_ToString(tally)); */
   return tally;
 }
 

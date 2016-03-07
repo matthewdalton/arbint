@@ -59,6 +59,9 @@ void AI_FreeArbInt(ArbInt *aival);
  */
 char const *AI_ToString(ArbInt const *value);
 
+char const *AI_ToStringDec(ArbInt const *value);
+
+char const *AI_ToStringBase(ArbInt const *value, int base, int approxLen);
 
 /*********************************************************************
  Mathematics
