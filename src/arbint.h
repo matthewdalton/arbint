@@ -59,6 +59,9 @@ void AI_FreeArbInt(ArbInt *aival);
  */
 char const *AI_ToString(ArbInt const *value);
 
+char const *AI_ToStringDec(ArbInt const *value);
+
+char const *AI_ToStringBase(ArbInt const *value, int base, int approxLen);
 
 /*********************************************************************
  Mathematics
@@ -84,7 +87,7 @@ ArbInt *AI_Mul_Value(ArbInt const *A, unsigned long val, int sign);
 /*
  * Division (A / B)
  */
-ArbInt *AI_Div(ArbInt const *A, ArbInt const *B);
+ArbInt *AI_Div(ArbInt const *A, ArbInt const *B, ArbInt **remainder);
 
 /*
  * Greater than (A > B)
@@ -120,5 +123,10 @@ ArbInt *AI_Abs(ArbInt const *A);
  * Negate
  */
 ArbInt *AI_Neg(ArbInt const *A);
+
+/*
+ * Is it zero?
+ */
+int AI_IsZero(ArbInt const *A);
 
 #endif /* _ARBINT_H_ */
