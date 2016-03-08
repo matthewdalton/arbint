@@ -55,9 +55,20 @@ void AI_FreeArbInt(ArbInt *aival);
  *********************************************************************/
 
 /*
- * Convert to string
+ * Convert to string. Returns a hexadecimal representation.
  */
 char const *AI_ToString(ArbInt const *value);
+
+/*
+ * Convert to string, decimal representation
+ */
+char const *AI_ToStringDec(ArbInt const *value);
+
+/*
+ * Convert to string, arbitrary base representation. Base must be <= 10.
+ */
+char const *AI_ToStringBase(ArbInt const *value, int base, int approxLen);
+
 
 
 /*********************************************************************
@@ -69,22 +80,26 @@ char const *AI_ToString(ArbInt const *value);
  */
 ArbInt *AI_Add(ArbInt const *A, ArbInt const *B);
 ArbInt *AI_Add_Value(ArbInt const *A, unsigned long val, int sign);
+ArbInt *AI_Add_And_Free(ArbInt *A, ArbInt *B);
 
 /*
  * Subtraction (A - B)
  */
 ArbInt *AI_Sub(ArbInt const *A, ArbInt const *B);
+ArbInt *AI_Sub_And_Free(ArbInt *A, ArbInt *B);
 
 /*
  * Multiplication
  */
 ArbInt *AI_Mul(ArbInt const *A, ArbInt const *B);
 ArbInt *AI_Mul_Value(ArbInt const *A, unsigned long val, int sign);
+ArbInt *AI_Mul_And_Free(ArbInt *A, ArbInt *B);
 
 /*
  * Division (A / B)
  */
-ArbInt *AI_Div(ArbInt const *A, ArbInt const *B);
+ArbInt *AI_Div(ArbInt const *A, ArbInt const *B, ArbInt **remainder);
+ArbInt *AI_Div_And_Free(ArbInt *A, ArbInt *B, ArbInt **remainder);
 
 /*
  * Greater than (A > B)
@@ -120,5 +135,10 @@ ArbInt *AI_Abs(ArbInt const *A);
  * Negate
  */
 ArbInt *AI_Neg(ArbInt const *A);
+
+/*
+ * Is it zero?
+ */
+int AI_IsZero(ArbInt const *A);
 
 #endif /* _ARBINT_H_ */
