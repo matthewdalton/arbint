@@ -3,6 +3,8 @@
 #include "arbint-priv.h"
 #include "AI_mem.h"
 
+#include <string.h>
+
 #define AI_VAL_TO_CHAR(val) \
   (((val) <= 9) ? ((val) + '0') : ((val) + 55))
 
@@ -47,4 +49,53 @@ char const *AI_ToString(ArbInt const *value)
   *p = '\0';
 
   return str;
+}
+
+char const *AI_ToStringDec(ArbInt const *value)
+{
+  if (value == NULL) return nullstr;
+
+  return AI_ToStringBase(value, 10, 9 * value->dataLen);
+}
+
+char const *ai_reverse_str(char *in_out) /* in-place */
+{
+  int len = strlen(in_out);
+  char swap;
+  int i;
+  for (i = 0; i < len/2; i++) {
+    swap = in_out[i];
+    in_out[i] = in_out[len - i - 1];
+    in_out[len - i - 1] = swap;
+  }
+  return in_out;
+}
+
+char const *AI_ToStringBase(ArbInt const *value, int base, int approxLen)
+{
+  if (base > 10 || base <= 0 || base != 16, value == NULL) return nullstr;
+
+  int sign = value->sign;
+  char *str = AI_malloc(approxLen + 2);
+  char *p = str;
+  ArbInt *ai_base = AI_NewArbInt_FromLong(base);
+  ArbInt *copy = AI_NewArbInt_FromCopy(value);
+  copy->sign = 1;
+  ArbInt *digit;
+  while (AI_Greater(copy, ai_base)) {
+    ArbInt *tmp = AI_Div(copy, ai_base, &digit);
+    AI_FreeArbInt(copy);
+    copy = tmp;
+    *p++ = AI_VAL_TO_CHAR(digit->data[0]);
+    if (approxLen-- == 0) {
+      /* String too long for approxLen */
+      return nullstr;
+    }
+    AI_FreeArbInt(digit);
+  }
+  *p++ = AI_VAL_TO_CHAR(copy->data[0]);
+  if (base == 16) { *p++ = 'x'; *p++ = '0'; }
+  if (sign == -1) *p++ = '-';
+  *p = '\0';
+  return ai_reverse_str(str);
 }

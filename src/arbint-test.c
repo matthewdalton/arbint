@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "arbint.h"
 #include "arbint-unittest.h"
@@ -186,6 +187,17 @@ int test_subtraction__basic2()
     TEST_EQUAL(val_sub, expected, AI_Equal, AI_ToString);
   }
 
+  {
+    char *s = "0x123";
+    char *t = "0x123";
+    val_A = AI_NewArbInt_FromString(s);
+    val_B = AI_NewArbInt_FromString(t);
+
+    val_sub = AI_Sub(val_A, val_B);
+    expected = AI_NewArbInt();
+    TEST_EQUAL(val_sub, expected, AI_Equal, AI_ToString);
+  }
+
 
   TEST_FOOTER();
 }
@@ -311,6 +323,132 @@ int test_multiplication__basic()
   TEST_FOOTER();
 }
 
+int test_division__simple()
+{
+  TEST_HEADER();
+
+  ArbInt *numerator;
+  ArbInt *denominator;
+  ArbInt *div;
+  ArbInt *mod;
+  ArbInt *expected;
+  ArbInt *exp_mod;
+
+  {
+    numerator = AI_NewArbInt_FromLong(12560);
+    denominator = AI_NewArbInt_FromLong(8);
+    expected = AI_NewArbInt_FromLong(1570);
+    div = AI_Div(numerator, denominator, &mod);
+    TEST_TRUE(AI_IsZero(mod));
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+  }
+
+  {
+    ArbInt *mul;
+    numerator = AI_NewArbInt_FromValue(4000000000, 1);
+    denominator = AI_NewArbInt_FromLong(2);
+    expected = AI_NewArbInt_FromString("0x1DCD65000"); // 8 000 000 000
+    mul = AI_Mul(numerator, denominator);
+    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
+    TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
+    div = AI_Div(mul, denominator, &mod);
+    TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
+  }
+
+  {
+    ArbInt *mul;
+    numerator = AI_NewArbInt_FromString("0x1000000");
+    denominator = AI_NewArbInt_FromLong(0x100);
+    expected = AI_NewArbInt_FromString("0x100000000");
+    mul = AI_Mul(numerator, denominator);
+    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
+    TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
+    div = AI_Div(mul, denominator, &mod);
+    TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
+  }
+
+  {
+    numerator = AI_NewArbInt_FromValue(50000, 1);
+    denominator = AI_NewArbInt_FromValue(67, 1); /* 746 remainder 18 */
+    expected = AI_NewArbInt_FromValue(746, 1);
+    exp_mod = AI_NewArbInt_FromValue(18, 1);
+    div = AI_Div(numerator, denominator, &mod);
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+    TEST_EQUAL(mod, exp_mod, AI_Equal, AI_ToString);
+  }
+
+  {
+    numerator = AI_NewArbInt_FromValue(50000, -1);
+    denominator = AI_NewArbInt_FromValue(67, 1); /* -746 remainder -49 */
+    expected = AI_NewArbInt_FromValue(746, -1);
+    exp_mod = AI_NewArbInt_FromValue(49, 1);
+    div = AI_Div(numerator, denominator, &mod);
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+    TEST_EQUAL(mod, exp_mod, AI_Equal, AI_ToString);
+  }
+
+  {
+    numerator = AI_NewArbInt_FromString("0x7048860ddf79");
+    TEST_TRUE(AI_Greater(numerator, AI_NewArbInt()));
+    denominator = AI_NewArbInt_FromValue(45678, 1);
+    TEST_TRUE(AI_Greater(denominator, AI_NewArbInt()));
+    expected = AI_NewArbInt_FromValue(2702762577, 1);
+    TEST_TRUE(AI_Greater(expected, AI_NewArbInt()));
+    div = AI_Div(numerator, denominator, &mod);
+    /* exp_mod = AI_NewArbInt_FromLong(20139); */
+
+    exp_mod = AI_Sub(numerator, AI_Mul(expected, denominator));
+
+    TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
+    TEST_EQUAL(mod, exp_mod, AI_Equal, AI_ToString);
+  }
+
+  TEST_FOOTER();
+}
+
+int test_division__by_zero()
+{
+  return 1;
+}
+
+int test_string__base()
+{
+  TEST_HEADER();
+
+  {
+    char *hex = "0x7048860ddf79";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    TEST_EQUAL_STR(AI_ToStringDec(val), "123456789012345");
+  }
+
+  {
+    char *hex = "0x7048860d";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    TEST_EQUAL_STR(AI_ToStringDec(val), "1883801101");
+  }
+
+  {
+    char *hex = "0x7048860d";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *bin = AI_ToStringBase(val, 2, (strlen(hex) - 2) * 4);
+    TEST_EQUAL_STR(bin, "1110000010010001000011000001101");
+  }
+
+  {
+    char *hex = "-0x7048860d";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    TEST_EQUAL_STR(AI_ToStringDec(val), "-1883801101");
+  }
+
+  {
+    char *hex = "-0x7048860D";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    TEST_EQUAL_STR(AI_ToStringBase(val, 16, strlen(hex)), hex);
+  }
+
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
@@ -321,6 +459,9 @@ int test_all_2()
     test_subtraction__basic() &&
     test_from_string__basic() &&
     test_multiplication__basic() &&
+    test_division__simple() &&
+    test_division__by_zero() &&
+    test_string__base() &&
     1;
 }
 
