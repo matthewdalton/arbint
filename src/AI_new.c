@@ -292,16 +292,21 @@ void *AI_Normalise(ArbInt *val)
 {
   unsigned long dataLen = val->dataLen;
   unsigned long i;
+  int isZero = 1;
   for (i = 0; i < val->dataLen; i++) {
-    if (val->data[i] != 0)
+    if (val->data[i] != 0) {
+      isZero = 0;
       break;
+    }
   }
-  if (i == 0 || (i == 1 && dataLen == 1 && val->data[0] == 0))
+  if (i == 0 || (i == 1 && dataLen == 1 && isZero))
     return val;
+
+  if (isZero) i--;              /* If isZero, i >= 2 at this point */
 
   aibase_t *orig = val->data;
   val->data += i;
-  val->dataLen -= i;;
+  val->dataLen -= i;
   ArbInt *normalised = AI_NewArbInt_FromCopy(val);
   val->data -= i;
   val->dataLen += i;

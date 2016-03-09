@@ -96,5 +96,6 @@ char const *AI_ToStringBase(ArbInt const *value, int base, int approxLen)
   *p++ = AI_VAL_TO_CHAR(copy->data[0]);
   if (base == 16) { *p++ = 'x'; *p++ = '0'; }
   if (sign == -1) *p++ = '-';
+  *p = '\0';
   return ai_reverse_str(str);
 }

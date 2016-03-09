@@ -164,7 +164,6 @@ ArbInt *AI_Div(ArbInt const *A, ArbInt const *B, ArbInt **remainder)
       B = &posB;
       mod_sign = -1;
     }
-    /* ArbInt *result = ai_div_unsigned_by_subtraction(A, B, remainder); */
     ArbInt *result = ai_div_unsigned_by_scaled_subtraction(A, B, remainder);
     (*remainder)->sign = mod_sign;
     return result;
@@ -854,7 +853,7 @@ ai_div_find_largest_multiple_smaller_than(ArbInt const *multi, ArbInt const *big
   ArbInt *res;
   ArbInt *multiplier = AI_NewArbInt_FromLong(1);
   ArbInt *mres;
-  // Quick'n'dirty version
+  /* Quick'n'dirty version */
   while (1) {
     res = AI_Mul_Value(largest, 2, 1);
     mres = AI_Mul_Value(multiplier, 2, 1);

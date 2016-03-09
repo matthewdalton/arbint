@@ -187,6 +187,17 @@ int test_subtraction__basic2()
     TEST_EQUAL(val_sub, expected, AI_Equal, AI_ToString);
   }
 
+  {
+    char *s = "0x123";
+    char *t = "0x123";
+    val_A = AI_NewArbInt_FromString(s);
+    val_B = AI_NewArbInt_FromString(t);
+
+    val_sub = AI_Sub(val_A, val_B);
+    expected = AI_NewArbInt();
+    TEST_EQUAL(val_sub, expected, AI_Equal, AI_ToString);
+  }
+
 
   TEST_FOOTER();
 }
@@ -332,29 +343,29 @@ int test_division__simple()
     TEST_EQUAL(div, expected, AI_Equal, AI_ToString);
   }
 
-  /* { */
-  /*   ArbInt *mul; */
-  /*   numerator = AI_NewArbInt_FromLong(4000000000); */
-  /*   denominator = AI_NewArbInt_FromLong(2); */
-  /*   expected = AI_NewArbInt_FromString("0x1DCD65000"); // 8 000 000 000 */
-  /*   mul = AI_Mul(numerator, denominator); */
-  /*   printf("%s\n", AI_ToString(mul)); */
-  /*   TEST_EQUAL(mul, expected, AI_Equal, AI_ToString); */
-  /*   div = AI_Div(mul, denominator, &mod); */
-  /*   TEST_EQUAL(div, numerator, AI_Equal, AI_ToString); */
-  /* } */
+  {
+    ArbInt *mul;
+    numerator = AI_NewArbInt_FromValue(4000000000, 1);
+    denominator = AI_NewArbInt_FromLong(2);
+    expected = AI_NewArbInt_FromString("0x1DCD65000"); // 8 000 000 000
+    mul = AI_Mul(numerator, denominator);
+    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
+    TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
+    div = AI_Div(mul, denominator, &mod);
+    TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
+  }
 
-  /* { */
-  /*   ArbInt *mul; */
-  /*   numerator = AI_NewArbInt_FromString( "0x1000000"); */
-  /*   denominator = AI_NewArbInt_FromLong(0x100); */
-  /*   expected = AI_NewArbInt_FromString("0x100000000"); */
-  /*   mul = AI_Mul(numerator, denominator); */
-  /*   printf("%s\n", AI_ToString(mul)); */
-  /*   TEST_EQUAL(mul, expected, AI_Equal, AI_ToString); */
-  /*   div = AI_Div(mul, denominator, &mod); */
-  /*   TEST_EQUAL(div, numerator, AI_Equal, AI_ToString); */
-  /* } */
+  {
+    ArbInt *mul;
+    numerator = AI_NewArbInt_FromString("0x1000000");
+    denominator = AI_NewArbInt_FromLong(0x100);
+    expected = AI_NewArbInt_FromString("0x100000000");
+    mul = AI_Mul(numerator, denominator);
+    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
+    TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
+    div = AI_Div(mul, denominator, &mod);
+    TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
+  }
 
   {
     numerator = AI_NewArbInt_FromValue(50000, 1);
