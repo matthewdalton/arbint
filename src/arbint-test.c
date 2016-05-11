@@ -91,6 +91,12 @@ int test_addition__basic(void) {
   expected = AI_NewArbInt_FromString("0x640000000");
   TEST_EQUAL(val_plus, expected, AI_Equal, AI_ToString);
 
+  AI_FreeArbInt(expected);
+  AI_FreeArbInt(val_plus);
+  AI_FreeArbInt(val_C);
+  AI_FreeArbInt(val_B);
+  AI_FreeArbInt(val_A);
+
   TEST_FOOTER();
 }
 
@@ -419,12 +425,14 @@ int test_string__base()
     char *hex = "0x7048860ddf79";
     ArbInt *val = AI_NewArbInt_FromString(hex);
     TEST_EQUAL_STR(AI_ToStringDec(val), "123456789012345");
+    AI_FreeArbInt(val);
   }
 
   {
     char *hex = "0x7048860d";
     ArbInt *val = AI_NewArbInt_FromString(hex);
     TEST_EQUAL_STR(AI_ToStringDec(val), "1883801101");
+    AI_FreeArbInt(val);
   }
 
   {
@@ -432,18 +440,39 @@ int test_string__base()
     ArbInt *val = AI_NewArbInt_FromString(hex);
     char const *bin = AI_ToStringBase(val, 2, (strlen(hex) - 2) * 4);
     TEST_EQUAL_STR(bin, "1110000010010001000011000001101");
+    AI_FreeArbInt(val);
   }
 
   {
     char *hex = "-0x7048860d";
     ArbInt *val = AI_NewArbInt_FromString(hex);
     TEST_EQUAL_STR(AI_ToStringDec(val), "-1883801101");
+    AI_FreeArbInt(val);
   }
 
   {
     char *hex = "-0x7048860D";
     ArbInt *val = AI_NewArbInt_FromString(hex);
     TEST_EQUAL_STR(AI_ToStringBase(val, 16, strlen(hex)), hex);
+    AI_FreeArbInt(val);
+  }
+
+  TEST_FOOTER();
+}
+
+int test_string__speed()
+{
+  TEST_HEADER();
+
+  {
+    char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976F8998308937019834709870DDCBBBBBBBBBBBEFFDEAC98746598273465982736958729876983726";
+    /* char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976"; */
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *hexstr = AI_ToStringBase(val, 16, strlen(hex));
+    printf("As hex: %s\n", hexstr);
+    printf("As dec: %s\n", AI_ToStringDec(val));
+    TEST_EQUAL_STR(hexstr, hex);
+    AI_FreeArbInt(val);
   }
 
   TEST_FOOTER();
@@ -462,6 +491,7 @@ int test_all_2()
     test_division__simple() &&
     test_division__by_zero() &&
     test_string__base() &&
+    test_string__speed() &&
     1;
 }
 

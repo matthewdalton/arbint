@@ -44,6 +44,12 @@ ArbInt *AI_NewArbInt_FromValue(aibase_t value, int sign);
 ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai);
 
 /*
+ * Initialise with a bit in the specified position.
+ * Produces 2^bit.
+ */
+ArbInt *AI_NewArbInt_SetBit(aibase_t bit);
+
+/*
  * Free an ArbInt created using any of the above initialisers
  */
 void AI_FreeArbInt(ArbInt *aival);

@@ -206,6 +206,7 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
   aibase_t *lv = AI_malloc(ai->dataLen * sizeof(aibase_t));
   if (lv == NULL) {
     AI_FreeArbInt(ret);
+    return NULL;
   }
 
   AI_memcpy(lv, ai->data, ai->dataLen * sizeof(aibase_t));
@@ -218,41 +219,37 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
   return ret;
 }
 
-#if 0
-void AI_Resize(ArbInt *val, unsigned long newsize)
+ArbInt *AI_NewArbInt_SetBit(aibase_t bit) /* 0-based */
 {
-  aibase_t *newdata;
+  static const aibase_t bits_per_unit = sizeof(aibase_t) * 8;
+  aibase_t num_units = (bit / bits_per_unit);
+  aibase_t high_pos = (bit % bits_per_unit);
 
-  if (val == NULL) {
-    return;
+  if (high_pos > 0)
+    ++num_units;
+
+  ArbInt *ret = ai_new_empty();
+  if (ret == NULL)
+    return NULL;
+
+  aibase_t *lv = AI_malloc(num_units * sizeof(aibase_t));
+  if (lv == NULL) {
+    AI_FreeArbInt(ret);
+    return NULL;
   }
 
-  if (newsize > AI_MAX_LENGTH) {
-    newsize = AI_MAX_LENGTH;
-  }
+  lv[num_units - 1] = 1 << high_pos;
+  ai_assign_value(ret, lv, num_units, 1);
 
-  if (newsize <= val->dataLen) {
-    return;
-  }
-
-  newdata = AI_malloc(newsize * sizeof(aibase_t));
-
-  if (newdata != NULL) {
-    if (val->data != NULL) {
-      AI_memcpy(newdata, val->data, val->dataLen * sizeof(aibase_t));
-      AI_free(val->data);
-    }
-    val->data = newdata;
-    val->dataLen = newsize;
-  }
+  return ret;
 }
-#else
-void AI_Resize(ArbInt *val, unsigned long newsize)
+
+ArbInt *AI_Resize(ArbInt *val, unsigned long newsize)
 {
   aibase_t *newdata;
 
   if (val == NULL) {
-    return;
+    return val;
   }
 
   if (newsize > AI_MAX_LENGTH) {
@@ -260,24 +257,28 @@ void AI_Resize(ArbInt *val, unsigned long newsize)
   }
 
   if (newsize <= val->dataLen) {
-    return;
+    return val;
   }
 
   newdata = AI_malloc(newsize * sizeof(aibase_t));
+  if (!newdata) {
+    return NULL;
+  }
+
   AI_memset(newdata, 0, newsize * sizeof(aibase_t));  
 
-  if (newdata != NULL) {
-    if (val->data != NULL) {
-      AI_memcpy(newdata + (newsize - val->dataLen),
-		val->data,
-		val->dataLen * sizeof(aibase_t));
-      AI_free(val->data);
-    }
-    val->data = newdata;
-    val->dataLen = newsize;
+  if (val->data != NULL) {
+    AI_memcpy(newdata + (newsize - val->dataLen),
+              val->data,
+              val->dataLen * sizeof(aibase_t));
+    AI_free(val->data);
   }
+  val->data = newdata;
+  val->dataLen = newsize;
+
+  return val;
 }
-#endif
+
 void AI_FreeArbInt(ArbInt *aival)
 {
   if (aival->data != NULL) {
