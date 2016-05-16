@@ -219,14 +219,13 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
   return ret;
 }
 
+void *AI_Normalise(ArbInt *val);
+
 ArbInt *AI_NewArbInt_SetBit(aibase_t bit) /* 0-based */
 {
   static const aibase_t bits_per_unit = sizeof(aibase_t) * 8;
-  aibase_t num_units = (bit / bits_per_unit);
+  aibase_t num_units = (bit + bits_per_unit) / bits_per_unit;
   aibase_t high_pos = (bit % bits_per_unit);
-
-  if (high_pos > 0)
-    ++num_units;
 
   ArbInt *ret = ai_new_empty();
   if (ret == NULL)
@@ -238,8 +237,12 @@ ArbInt *AI_NewArbInt_SetBit(aibase_t bit) /* 0-based */
     return NULL;
   }
 
-  lv[num_units - 1] = 1 << high_pos;
+  AI_memset(lv, 0, num_units * sizeof(aibase_t));
+
+  lv[0] = 1 << high_pos;
   ai_assign_value(ret, lv, num_units, 1);
+
+  ret = AI_Normalise(ret);
 
   return ret;
 }

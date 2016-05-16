@@ -478,6 +478,40 @@ int test_string__speed()
   TEST_FOOTER();
 }
 
+int test_setbit__basic()
+{
+  TEST_HEADER();
+
+  ArbInt *val;
+  ArbInt *expected;
+
+  {
+    val = AI_NewArbInt_SetBit(0);
+    expected = AI_NewArbInt_FromString("0x1");
+    TEST_EQUAL(val, expected, AI_Equal, AI_ToString);
+  }
+
+  {
+    val = AI_NewArbInt_SetBit(1);
+    expected = AI_NewArbInt_FromString("0x00000002");
+    TEST_EQUAL(val, expected, AI_Equal, AI_ToString);
+  }
+
+  {
+    val = AI_NewArbInt_SetBit(31);
+    expected = AI_NewArbInt_FromString("0x80000000");
+    TEST_EQUAL(val, expected, AI_Equal, AI_ToString);
+  }
+
+  {
+    val = AI_NewArbInt_SetBit(32);
+    expected = AI_NewArbInt_FromString("0x100000000");
+    TEST_EQUAL(val, expected, AI_Equal, AI_ToString);
+  }
+
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
@@ -491,6 +525,7 @@ int test_all_2()
     test_division__simple() &&
     test_division__by_zero() &&
     test_string__base() &&
+    test_setbit__basic() &&
     test_string__speed() &&
     1;
 }
@@ -505,6 +540,9 @@ int main()
   ArbInt *val_mul;
   int mul_test = 1;
   unsigned int mult = 100;
+
+  /* gnomon doesn't work properly without this! */
+  setbuf(stdout, NULL);
 
   if (!test_all()) {
     printf("Unit tests failed\n");
