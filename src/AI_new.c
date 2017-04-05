@@ -219,7 +219,7 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
   return ret;
 }
 
-#ifdef 1
+#if 1
 void *AI_Normalise(ArbInt *val);
 
 ArbInt *AI_NewArbInt_SetBit(aibase_t bit) /* 0-based */
