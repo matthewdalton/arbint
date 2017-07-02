@@ -12,6 +12,8 @@
 typedef struct arbint	ArbInt;
 typedef uint32_t        aibase_t;
 
+typedef struct arbint_bititerator ArbInt_BitIterator;
+
 
 /*********************************************************************
  Initialisers
@@ -146,5 +148,23 @@ ArbInt *AI_Neg(ArbInt const *A);
  * Is it zero?
  */
 int AI_IsZero(ArbInt const *A);
+
+/*
+ * A^B
+ */
+ArbInt *AI_Pow(ArbInt const *A, ArbInt const *B);
+
+/*********************************************************************
+ Iterators
+ *********************************************************************/
+
+/*
+ * Bit iterator
+ */
+ArbInt_BitIterator *AI_Make_Bit_Iter(ArbInt const *ai);
+
+int AI_Bit_Iter_Inc(ArbInt_BitIterator *bi);
+
+int AI_Bit_Iter_Get(ArbInt_BitIterator const *bi);
 
 #endif /* _ARBINT_H_ */

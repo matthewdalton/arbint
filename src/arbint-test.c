@@ -512,6 +512,68 @@ int test_setbit__basic()
   TEST_FOOTER();
 }
 
+int test_bititer__basic()
+{
+  TEST_HEADER();
+  ArbInt *val;
+  {
+    int expected[8] = {0,1,0,1,0,0,1,1};
+    val = AI_NewArbInt_FromString("0xCA"); /* 11001010 */
+    ArbInt_BitIterator *bi = AI_Make_Bit_Iter(val);
+    int i = 0;
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+  }
+  TEST_FOOTER();
+}
+
+int test_bititer__long()
+{
+  TEST_HEADER();
+  ArbInt *val;
+  {
+    int expected[8] = {1,0,1,0,1,1,0,1};
+    val = AI_NewArbInt_FromString("0xB500000000"); /* 10110101 */
+    ArbInt_BitIterator *bi = AI_Make_Bit_Iter(val);
+    int i = 0;
+    while (i < 32) {
+      TEST_TRUE(AI_Bit_Iter_Get(bi) == 0);
+      ++i;
+      AI_Bit_Iter_Inc(bi);
+    }
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+  }
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
@@ -526,6 +588,8 @@ int test_all_2()
     test_division__by_zero() &&
     test_string__base() &&
     test_setbit__basic() &&
+    test_bititer__basic() &&
+    test_bititer__long() &&
     test_string__speed() &&
     1;
 }
