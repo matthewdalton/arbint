@@ -1,7 +1,10 @@
 CC=gcc
-CFLAGS=-g
+CFLAGS=-g #-pg
+#LDFLAGS=-pg
 
-all: arbint-test tags test
+all: build test
+
+build: arbint-test tags
 
 arbint: AI_mem.o AI_new.o
 

@@ -39,6 +39,12 @@ ai_mul_add_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
 STATIC ArbInt *
 ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift);
 
+STATIC aibase_t
+ai_msbit_in_value(aibase_t val);
+
+STATIC aibase_t
+ai_msbit_in_arbint(ArbInt const *val);
+
 STATIC ArbInt *
 ai_div_find_largest_multiple_smaller_than(ArbInt const *multi, ArbInt const *bigger);
 
@@ -126,13 +132,7 @@ ArbInt *AI_Sub_And_Free(ArbInt *A, ArbInt *B)
 
 ArbInt *AI_Mul(ArbInt const *A, ArbInt const *B)
 {
-  ArbInt *ans = ai_mul_signed(A, B);
-  if (ans == NULL)
-    goto error_exit;
-
-  return ans;
- error_exit:
-  return NULL;
+  return ai_mul_signed(A, B);
 }
 
 ArbInt *AI_Mul_Value(ArbInt const *A, unsigned long val, int sign)
@@ -434,13 +434,17 @@ STATIC ArbInt *
 ai_sub_unsigned(ArbInt const *A, ArbInt const *B)
 {
   ArbInt *ans = AI_NewArbInt();
+  unsigned long newlen;
   int carry = 0;
   int i;
   int j;
 
-  ans->dataLen = (A->dataLen > B->dataLen ? A->dataLen : B->dataLen);
+  newlen = (A->dataLen > B->dataLen ? A->dataLen : B->dataLen);
   
-  AI_Resize(ans, ans->dataLen);
+  if (!ans || !AI_Resize(ans, newlen)) {
+    AI_FreeArbInt(ans);
+    return NULL;
+  }
 
   /*
    * Make B hold the lower value
@@ -617,10 +621,6 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
   int index = 0;
   ArbInt *ans;
 
-  /* printf("Multiplying %24s x\n", AI_ToString(A)); */
-  /* printf("            %24s\n", AI_ToString(B)); */
-  /* printf("            ------------------------\n"); */
-
   ans = AI_NewArbInt();
   if (ans == NULL)
     goto error_exit;
@@ -631,16 +631,20 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
    */
   ArbInt *partial;
   ArbInt *old_ans;
-  char *debug_str =  "            %%%ds\n";
-  char buff[64];
   int pad = 24;
   for (index = B->dataLen - 1; index >= 0; --index) {
     partial = ai_mul_single_stage(A, B->data[index]);
     old_ans = ans;
-    sprintf(buff, debug_str, pad-8*(B->dataLen-1-index));
-    /* printf(buff, AI_ToString(partial)); */
+
+    /* {
+      char *debug_str =  "            %%%ds\n";
+      char buff[64];
+      sprintf(buff, debug_str, pad-8*(B->dataLen-1-index));
+      printf(buff, AI_ToString(partial));
+      } */
     ans = ai_add_unsigned_with_lshift(ans, partial, B->dataLen-1-index);
     AI_FreeArbInt(old_ans);
+    AI_FreeArbInt(partial);
   }
   ans->sign *= B->sign;
   return ans;
@@ -684,7 +688,12 @@ ai_mul_single_stage(ArbInt const *A, aibase_t b)
 
   int i;
   ArbInt *partial = AI_NewArbInt();
-  AI_Resize(partial, 2);
+  if (!AI_Resize(partial, 2)) {
+    AI_FreeArbInt(ans);
+    AI_FreeArbInt(partial);
+    return NULL;
+  }
+
   int carry;
   aibase_t val;
   for (i = A->dataLen - 1; i >= 0; --i) {
@@ -705,6 +714,7 @@ ai_mul_single_stage(ArbInt const *A, aibase_t b)
     /* printf("Partial answer: %s\n", AI_ToString(ans)); */
     AI_FreeArbInt(old_ans);
   }
+  AI_FreeArbInt(partial);
   ans->sign = A->sign;
   return ans;
 }
@@ -729,7 +739,8 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   if (ans == NULL)
     goto error_exit;
 
-  AI_Resize(ans, MAX(A->dataLen, (B->dataLen + B_lshift)));
+  if (!AI_Resize(ans, MAX(A->dataLen, (B->dataLen + B_lshift))))
+    goto error_exit;
 
   /*
    * a is the array index of A->data, but 0 is one past the last item.
@@ -830,8 +841,8 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   }
 
   if (carry > 0) {
-    AI_Resize(ans, ans->dataLen + 1);
-    /* error check? */
+    if (!AI_Resize(ans, ans->dataLen + 1))
+      goto error_exit;
     /* assert(0);			/\* Disabling as I suspect a bug *\/ */
     ans->data[0] = carry;
   }
@@ -846,26 +857,108 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
 
 /**** Division ****/
 
+STATIC aibase_t
+ai_msbit_in_value(aibase_t val)
+{
+  aibase_t mask = 1 << (8 * sizeof(aibase_t) - 1);
+  aibase_t bit = sizeof(aibase_t) * 8 - 1;
+  while (mask && ((val & mask) == 0)) {
+    mask >>= 1;
+    --bit;
+  }
+  return bit;
+}
+
+STATIC aibase_t
+ai_msbit_in_arbint(ArbInt const *val)
+{
+  unsigned long set_byte = 0;
+
+  while (val->data[set_byte] == 0 && set_byte < val->dataLen)
+    set_byte++;
+
+  return (val->dataLen - set_byte - 1) * sizeof(aibase_t) * 8 +
+    ai_msbit_in_value(val->data[set_byte]);
+}
+
 STATIC ArbInt *
 ai_div_find_largest_multiple_smaller_than(ArbInt const *multi, ArbInt const *bigger)
 {
-  ArbInt *largest = AI_NewArbInt_FromCopy(multi);
+
+  ArbInt *largest;
   ArbInt *res;
-  ArbInt *multiplier = AI_NewArbInt_FromLong(1);
+  ArbInt *multiplier;
   ArbInt *mres;
+
+  if (AI_IsZero(multi)) {
+    return NULL;
+  }
+
+  largest = AI_NewArbInt_FromCopy(multi);
+  multiplier = AI_NewArbInt_FromLong(1);
+
+  /* First approximation */
+  unsigned long set_byte = 0;
+  while (bigger->data[set_byte] == 0 && set_byte < bigger->dataLen)
+    set_byte++;
+
+  if (set_byte == bigger->dataLen) {
+    AI_FreeArbInt(multiplier);
+    multiplier = NULL;
+    goto free_mem;
+  }
+
+  /*
+   * Set the first approximation to be the ms-bit of the byte one less
+   * than the most significant byte in bigger. This guarantees the values is
+   * lower than 'bigger' even after it's multiplied by 2 in the first
+   * iteration of the while loop.
+   *
+   * Alternatively, just find the largest bit in the first non-zero byte
+   * of 'bigger' and calculate the value from that. It's O(1) on the size of
+   * bigger!
+   */
+  aibase_t val = bigger->data[set_byte];
+  aibase_t mask = 1 << (8 * sizeof(aibase_t) - 1);
+  while (mask && ((val & mask) == 0))
+    mask >>= 1;
+
+  aibase_t bit = 0;
+  while (mask > 1) {
+    mask >>= 1;
+    ++bit;
+  }
+
+#if 0                           /* Experimental version not quite ready */
+  ArbInt *mult = AI_NewArbInt_SetBit(bit
+                                     + ((set_byte - (multi->dataLen - 1)) * sizeof(aibase_t) * 8)
+                                     - ai_msbit_in_arbint(multi));
+
+  printf("%s should be smaller than %s\n", AI_ToString(AI_Mul(multi, mult)), AI_ToString(bigger));
+
+  return mult;
+#endif
+
   /* Quick'n'dirty version */
   while (1) {
     res = AI_Mul_Value(largest, 2, 1);
     mres = AI_Mul_Value(multiplier, 2, 1);
-    if (AI_Greater(res, bigger)) {
-      return multiplier;
-    }
+    if (AI_Greater(res, bigger))
+      goto free_mem;
     AI_FreeArbInt(largest);
     largest = res;
     AI_FreeArbInt(multiplier);
     multiplier = mres;
   }
-  return NULL;                  /* Unreachable */
+
+  AI_FreeArbInt(multiplier);
+  multiplier = NULL;
+
+ free_mem:
+  AI_FreeArbInt(largest);
+  AI_FreeArbInt(res);
+  AI_FreeArbInt(mres);
+  return multiplier;
 }
 
 /*

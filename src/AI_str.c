@@ -55,7 +55,7 @@ char const *AI_ToStringDec(ArbInt const *value)
 {
   if (value == NULL) return nullstr;
 
-  return AI_ToStringBase(value, 10, 9 * value->dataLen);
+  return AI_ToStringBase(value, 10, 10 * value->dataLen);
 }
 
 char const *ai_reverse_str(char *in_out) /* in-place */
