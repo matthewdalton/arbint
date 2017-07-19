@@ -574,6 +574,89 @@ int test_bititer__long()
   TEST_FOOTER();
 }
 
+int test_hsb__1()
+{
+  TEST_HEADER();
+  ArbInt *one = AI_NewArbInt_From32(1);
+  aibase_t hsb = arbint_get_hsb_position(one);
+  TEST_TRUE(hsb == 1);
+  TEST_FOOTER();
+}
+
+int test_hsb__2()
+{
+  TEST_HEADER();
+  ArbInt *two = AI_NewArbInt_From32(2);
+  aibase_t hsb = arbint_get_hsb_position(two);
+  TEST_TRUE(hsb == 2);
+  TEST_FOOTER();
+}
+
+int test_hsb__4()
+{
+  TEST_HEADER();
+  ArbInt *val = AI_NewArbInt_From32(4);
+  aibase_t hsb = arbint_get_hsb_position(val);
+  TEST_TRUE(hsb == 3);
+  TEST_FOOTER();
+}
+
+ArbInt *__ai_pow_by_power2(ArbInt const *A, aibase_t exponent);
+int test_pow_by_pow2__1()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(2);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = __ai_pow_by_power2(val, 1); /* 15^(2^1) */
+  ArbInt *expected = AI_NewArbInt_From32(225);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_pow_by_pow2__2()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(2);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = __ai_pow_by_power2(val, 2); /* 15^(2^2) */
+  ArbInt *expected = AI_NewArbInt_From32(50625);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToStringDec);
+  TEST_FOOTER();
+}
+
+int test_pow__two()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(2);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = AI_Pow(val, e);
+  ArbInt *expected = AI_NewArbInt_From32(225);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_pow__three()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(3);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = AI_Pow(val, e);
+  ArbInt *expected = AI_NewArbInt_From32(3375);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_pow__seven()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(7);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = AI_Pow(val, e);
+  ArbInt *expected = AI_NewArbInt_From32(15*15*15*15*15*15*15);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
@@ -590,7 +673,15 @@ int test_all_2()
     test_setbit__basic() &&
     test_bititer__basic() &&
     test_bititer__long() &&
-    test_string__speed() &&
+    test_hsb__1() &&
+    test_hsb__2() &&
+    test_hsb__4() &&
+    test_pow_by_pow2__1() &&
+    test_pow_by_pow2__2() &&
+    test_pow__two() &&
+    test_pow__three() &&
+    test_pow__seven() &&
+    /* test_string__speed() && */
     1;
 }
 

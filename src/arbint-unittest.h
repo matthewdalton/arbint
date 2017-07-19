@@ -59,7 +59,7 @@ ai_div_unsigned_by_subtraction(ArbInt const *A, ArbInt const *B, ArbInt **remain
 
 #define TEST_EQUAL(got, expt, cmp, toStr)                               \
   if (!(cmp)((got), (expt))) {                                          \
-    printf("TEST_EQUAL Failure (%s, %d):\n", __func__, __LINE__);       \
+    printf("TEST_EQUAL Failure (%s, line %d):\n", __func__, __LINE__);       \
     printf("    expected %s, got %s\n", (toStr)((expt)), (toStr)((got))); \
     goto test_exit;                                                     \
   }
