@@ -58,10 +58,6 @@ aibase_t arbint_get_hsb_position(ArbInt const *ai)
   int base = (ai->dataLen - 1) * sizeof(aibase_t);
   for (i = 0; i < ai->dataLen; i++) {
     if (ai->data[i] != 0) {
-      printf("ai->data[i] is %d\n", ai->data[i]);
-      printf("ai_get_hsb_position returns %d\n", ai_get_hsb_position(ai->data[i]));
-      printf("arbint_get_hsb_position returning %d\n",
-             base + ai_get_hsb_position(ai->data[i]));
       return base + ai_get_hsb_position(ai->data[i]);
     }
     base -= sizeof(aibase_t);

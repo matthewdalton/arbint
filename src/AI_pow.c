@@ -93,46 +93,24 @@ ArbInt *__ai_pow_by_power2(ArbInt const *A, aibase_t exponent)
 
 ArbInt *ai_pow_positive(ArbInt const *A, ArbInt const *B)
 {
-  // B must be >= 2
-  printf("ai_pow_positive(%s, %s)\n", AI_ToStringDec(A),
-         AI_ToStringDec(B));
   ArbInt *ans = AI_NewArbInt_From32(1);
-  /* ArbInt *ans = AI_NewArbInt_FromCopy(A); */
   ArbInt *val;
   aibase_t hsb = arbint_get_hsb_position(B);
   ArbInt_BitIterator *bi = AI_Make_Bit_Iter(B);
   aibase_t bitNum = 0;
   aibase_t exp = 1;
-  printf("Entering while; bitNum = %lu, hsb = %lu\n", bitNum, hsb);
   while (bitNum < hsb) {
     int isSet = AI_Bit_Iter_Get(bi);
-    printf("isSet is %d\n", isSet);
-    printf("exp is %llu\n", exp);
-    printf("bitNum is %d\n", bitNum);
     if (isSet) {
-      /* printf("Multiplying %s by %s\n", AI_ToStringDec(ans), */
-      /*        AI_ToStringDec(ai_pow_by_power2(A, exp))); */
-      /* val = AI_Mul(ans, ai_pow_by_power2(A, exp)); */
-      printf("Multiplying %s by %s\n", AI_ToStringDec(ans),
-             AI_ToStringDec(ai_pow_by_power2(A, bitNum)));
       val = AI_Mul(ans, ai_pow_by_power2(A, bitNum));
-      printf("val is %s\n", AI_ToStringDec(val));
       AI_FreeArbInt(ans);
       ans = val;
     }
     bitNum++;
     exp++;
     if (!AI_Bit_Iter_Inc(bi)) {
-      printf("Exiting while via break\n");
       break;
     }
   }
   return ans;
 }
-
-// 15^0 = 1
-// 15^1 = 15    = 15^(2^0)
-// 15^2 = 225   = 15^(2^1)
-// 15^3 = 3375  = 15^(2^1) * 15^(2^0)
-// 15^4 = 50625 = 15^(2^2)
-//

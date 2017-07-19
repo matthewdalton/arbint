@@ -355,7 +355,6 @@ int test_division__simple()
     denominator = AI_NewArbInt_FromLong(2);
     expected = AI_NewArbInt_FromString("0x1DCD65000"); // 8 000 000 000
     mul = AI_Mul(numerator, denominator);
-    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
     TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
     div = AI_Div(mul, denominator, &mod);
     TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
@@ -367,7 +366,6 @@ int test_division__simple()
     denominator = AI_NewArbInt_FromLong(0x100);
     expected = AI_NewArbInt_FromString("0x100000000");
     mul = AI_Mul(numerator, denominator);
-    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
     TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
     div = AI_Div(mul, denominator, &mod);
     TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
