@@ -467,11 +467,14 @@ int test_string__speed()
   {
     char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976F8998308937019834709870DDCBBBBBBBBBBBEFFDEAC98746598273465982736958729876983726";
     /* char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976"; */
+    char *dec = "148131502183520603656499471143189533319909504760313034282164028905951168218330558070650862155144272402972683158352154564510982096103068905186669041637107610253251612223383646254886";
     ArbInt *val = AI_NewArbInt_FromString(hex);
     char const *hexstr = AI_ToStringBase(val, 16, strlen(hex));
     printf("As hex: %s\n", hexstr);
-    printf("As dec: %s\n", AI_ToStringDec(val));
+    char const *decstr = AI_ToStringDec(val);
+    printf("As dec: %s\n", decstr);
     TEST_EQUAL_STR(hexstr, hex);
+    TEST_EQUAL_STR(decstr, dec);
     AI_FreeArbInt(val);
   }
 
@@ -681,7 +684,7 @@ int test_all_2()
     test_pow__two() &&
     test_pow__three() &&
     test_pow__seven() &&
-    /* test_string__speed() && */
+    test_string__speed() &&
     1;
 }
 
