@@ -18,6 +18,13 @@ struct arbint
   int           sign;
 };
 
+struct arbint_bititerator {
+  aibase_t const *begin;
+  aibase_t const *end;
+  aibase_t const *byte;
+  aibase_t bit;
+};
+
 /*
  * This should work on both 32 and 64 bit systems.
  */

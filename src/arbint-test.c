@@ -355,7 +355,6 @@ int test_division__simple()
     denominator = AI_NewArbInt_FromLong(2);
     expected = AI_NewArbInt_FromString("0x1DCD65000"); // 8 000 000 000
     mul = AI_Mul(numerator, denominator);
-    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
     TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
     div = AI_Div(mul, denominator, &mod);
     TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
@@ -367,7 +366,6 @@ int test_division__simple()
     denominator = AI_NewArbInt_FromLong(0x100);
     expected = AI_NewArbInt_FromString("0x100000000");
     mul = AI_Mul(numerator, denominator);
-    printf("%s x %s = %s\n", AI_ToStringDec(numerator), AI_ToStringDec(denominator), AI_ToStringDec(mul));
     TEST_EQUAL(mul, expected, AI_Equal, AI_ToString);
     div = AI_Div(mul, denominator, &mod);
     TEST_EQUAL(div, numerator, AI_Equal, AI_ToString);
@@ -467,11 +465,14 @@ int test_string__speed()
   {
     char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976F8998308937019834709870DDCBBBBBBBBBBBEFFDEAC98746598273465982736958729876983726";
     /* char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976"; */
+    char *dec = "148131502183520603656499471143189533319909504760313034282164028905951168218330558070650862155144272402972683158352154564510982096103068905186669041637107610253251612223383646254886";
     ArbInt *val = AI_NewArbInt_FromString(hex);
     char const *hexstr = AI_ToStringBase(val, 16, strlen(hex));
     printf("As hex: %s\n", hexstr);
-    printf("As dec: %s\n", AI_ToStringDec(val));
+    char const *decstr = AI_ToStringDec(val);
+    printf("As dec: %s\n", decstr);
     TEST_EQUAL_STR(hexstr, hex);
+    TEST_EQUAL_STR(decstr, dec);
     AI_FreeArbInt(val);
   }
 
@@ -512,6 +513,151 @@ int test_setbit__basic()
   TEST_FOOTER();
 }
 
+int test_bititer__basic()
+{
+  TEST_HEADER();
+  ArbInt *val;
+  {
+    int expected[8] = {0,1,0,1,0,0,1,1};
+    val = AI_NewArbInt_FromString("0xCA"); /* 11001010 */
+    ArbInt_BitIterator *bi = AI_Make_Bit_Iter(val);
+    int i = 0;
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i]); ++i;
+    AI_Bit_Iter_Inc(bi);
+  }
+  TEST_FOOTER();
+}
+
+int test_bititer__long()
+{
+  TEST_HEADER();
+  ArbInt *val;
+  {
+    int expected[8] = {1,0,1,0,1,1,0,1};
+    val = AI_NewArbInt_FromString("0xB500000000"); /* 10110101 */
+    ArbInt_BitIterator *bi = AI_Make_Bit_Iter(val);
+    int i = 0;
+    while (i < 32) {
+      TEST_TRUE(AI_Bit_Iter_Get(bi) == 0);
+      ++i;
+      AI_Bit_Iter_Inc(bi);
+    }
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+    AI_Bit_Iter_Inc(bi);
+    TEST_TRUE(AI_Bit_Iter_Get(bi) == expected[i-32]); ++i;
+  }
+  TEST_FOOTER();
+}
+
+int test_hsb__1()
+{
+  TEST_HEADER();
+  ArbInt *one = AI_NewArbInt_From32(1);
+  aibase_t hsb = arbint_get_hsb_position(one);
+  TEST_TRUE(hsb == 1);
+  TEST_FOOTER();
+}
+
+int test_hsb__2()
+{
+  TEST_HEADER();
+  ArbInt *two = AI_NewArbInt_From32(2);
+  aibase_t hsb = arbint_get_hsb_position(two);
+  TEST_TRUE(hsb == 2);
+  TEST_FOOTER();
+}
+
+int test_hsb__4()
+{
+  TEST_HEADER();
+  ArbInt *val = AI_NewArbInt_From32(4);
+  aibase_t hsb = arbint_get_hsb_position(val);
+  TEST_TRUE(hsb == 3);
+  TEST_FOOTER();
+}
+
+ArbInt *__ai_pow_by_power2(ArbInt const *A, aibase_t exponent);
+int test_pow_by_pow2__1()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(2);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = __ai_pow_by_power2(val, 1); /* 15^(2^1) */
+  ArbInt *expected = AI_NewArbInt_From32(225);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_pow_by_pow2__2()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(2);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = __ai_pow_by_power2(val, 2); /* 15^(2^2) */
+  ArbInt *expected = AI_NewArbInt_From32(50625);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToStringDec);
+  TEST_FOOTER();
+}
+
+int test_pow__two()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(2);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = AI_Pow(val, e);
+  ArbInt *expected = AI_NewArbInt_From32(225);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_pow__three()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(3);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = AI_Pow(val, e);
+  ArbInt *expected = AI_NewArbInt_From32(3375);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_pow__seven()
+{
+  TEST_HEADER();
+  ArbInt *e = AI_NewArbInt_From32(7);
+  ArbInt *val = AI_NewArbInt_From32(15);
+  ArbInt *ans = AI_Pow(val, e);
+  ArbInt *expected = AI_NewArbInt_From32(15*15*15*15*15*15*15);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
@@ -526,6 +672,16 @@ int test_all_2()
     test_division__by_zero() &&
     test_string__base() &&
     test_setbit__basic() &&
+    test_bititer__basic() &&
+    test_bititer__long() &&
+    test_hsb__1() &&
+    test_hsb__2() &&
+    test_hsb__4() &&
+    test_pow_by_pow2__1() &&
+    test_pow_by_pow2__2() &&
+    test_pow__two() &&
+    test_pow__three() &&
+    test_pow__seven() &&
     test_string__speed() &&
     1;
 }
