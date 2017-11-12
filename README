@@ -1,5 +1,9 @@
-Arbitrary Precision Library
+Arbitrary Precision Integer Library
 
-Written for educational purposes only. Not fully featured, unoptimised
-and not well tested. Use at your own risk!
+Written for educational purposes only. Not fully featured and unoptimised.
+
+Supports the following operations:
+ - add, subtract, multiply, divide (euclidean)
+ - comparison operators (eq, lt, gt, lte, gte, neg)
+ - pow, isqrt
 
