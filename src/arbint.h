@@ -155,6 +155,11 @@ int AI_IsZero(ArbInt const *A);
  */
 ArbInt *AI_Pow(ArbInt const *A, ArbInt const *B);
 
+/*
+ * Square root
+ */
+ArbInt *AI_isqrt(ArbInt const *n);
+
 /*********************************************************************
  Iterators
  *********************************************************************/
