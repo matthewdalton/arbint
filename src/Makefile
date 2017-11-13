@@ -14,7 +14,7 @@ clean:
 	rm *.o arbint-test
 
 tags:
-	etags *.[ch]
+	-etags *.[ch]
 
 test: build
 	./arbint-test
