@@ -71,6 +71,7 @@ char const *AI_ToString(ArbInt const *value);
  * Convert to string, decimal representation
  */
 char const *AI_ToStringDec(ArbInt const *value);
+char const *AI_ToStringHex(ArbInt const *value);
 
 /*
  * Convert to string, arbitrary base representation. Base must be <= 10.

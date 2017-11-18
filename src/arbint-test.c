@@ -170,6 +170,19 @@ int test_from_string__basic()
   TEST_FOOTER();
 }
 
+int test_to_string__dec_regression()
+{
+  TEST_HEADER();
+  {
+    char *hex = "0x0F";
+    char *dec = "15";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    TEST_EQUAL_STR(AI_ToStringDec(val), dec);
+    AI_FreeArbInt(val);
+  }
+  TEST_FOOTER();
+}
+
 int test_subtraction__basic2()
 {
   TEST_HEADER();
@@ -458,21 +471,63 @@ int test_string__base()
   TEST_FOOTER();
 }
 
-int test_string__speed()
+int test_string__speed_hex()
 {
   TEST_HEADER();
 
   {
     char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976F8998308937019834709870DDCBBBBBBBBBBBEFFDEAC98746598273465982736958729876983726";
-    /* char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976"; */
-    char *dec = "148131502183520603656499471143189533319909504760313034282164028905951168218330558070650862155144272402972683158352154564510982096103068905186669041637107610253251612223383646254886";
     ArbInt *val = AI_NewArbInt_FromString(hex);
     char const *hexstr = AI_ToStringBase(val, 16, strlen(hex));
-    printf("As hex: %s\n", hexstr);
-    char const *decstr = AI_ToStringDec(val);
-    printf("As dec: %s\n", decstr);
     TEST_EQUAL_STR(hexstr, hex);
+    AI_FreeArbInt(val);
+  }
+
+  TEST_FOOTER();
+}
+
+int test_string__speed_dec()
+{
+  TEST_HEADER();
+
+  {
+    char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976F8998308937019834709870DDCBBBBBBBBBBBEFFDEAC98746598273465982736958729876983726";
+    char *dec = "148131502183520603656499471143189533319909504760313034282164028905951168218330558070650862155144272402972683158352154564510982096103068905186669041637107610253251612223383646254886";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *decstr = AI_ToStringDec(val);
     TEST_EQUAL_STR(decstr, dec);
+    AI_FreeArbInt(val);
+  }
+
+  TEST_FOOTER();
+}
+
+int test_string__speed_dec100()
+{
+  TEST_HEADER();
+
+  {
+    char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976F8998308937019834709870DDCBBBBBBBBBBBEFFDEAC98746598273465982736958729876983726";
+    char *dec = "148131502183520603656499471143189533319909504760313034282164028905951168218330558070650862155144272402972683158352154564510982096103068905186669041637107610253251612223383646254886";
+
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *decstr = AI_ToStringBase(val, 1000000000, strlen(dec));
+    TEST_EQUAL_STR(decstr, dec);
+    AI_FreeArbInt(val);
+  }
+
+  TEST_FOOTER();
+}
+
+int test_string__speed_hex_wide()
+{
+  TEST_HEADER();
+
+  {
+    char *hex = "0x92389876349827364DF5B2938470923840987230980986109273460ACC765BE8768976F8998308937019834709870DDCBBBBBBBBBBBEFFDEAC98746598273465982736958729876983726";
+    ArbInt *val = AI_NewArbInt_FromString(hex);
+    char const *hexstr = AI_ToStringHex(val);
+    TEST_EQUAL_STR(hexstr, hex);
     AI_FreeArbInt(val);
   }
 
@@ -667,6 +722,7 @@ int test_all_2()
     test_addition__basic() &&
     test_subtraction__basic() &&
     test_from_string__basic() &&
+    test_to_string__dec_regression() &&
     test_multiplication__basic() &&
     test_division__simple() &&
     test_division__by_zero() &&
@@ -682,7 +738,9 @@ int test_all_2()
     test_pow__two() &&
     test_pow__three() &&
     test_pow__seven() &&
-    test_string__speed() &&
+    test_string__speed_dec100() &&
+    test_string__speed_hex_wide() &&
+    test_string__speed_dec() &&
     1;
 }
 
