@@ -713,6 +713,56 @@ int test_pow__seven()
   TEST_FOOTER();
 }
 
+int test_isqrt__small()
+{
+  TEST_HEADER();
+  ArbInt *val = AI_NewArbInt_From32(17);
+  ArbInt *ans = AI_isqrt(val);
+  ArbInt *expected = AI_NewArbInt_From32(4);
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_isqrt__large()
+{
+  TEST_HEADER();
+  ArbInt *val = AI_NewArbInt_From32(26942352);
+  ArbInt *ans = AI_isqrt(val);
+  ArbInt *expected = AI_NewArbInt_From32(5190); /* 5190.602277192889... */
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToString);
+  TEST_FOOTER();
+}
+
+int test_isqrt__very_large()
+{
+  TEST_HEADER();
+  ArbInt *val = AI_NewArbInt_FromString("23453252096409238403");
+  ArbInt *ans = AI_isqrt(val);
+  ArbInt *expected = AI_NewArbInt_FromString("4842855779");
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToStringDec);
+  TEST_FOOTER();
+}
+
+int test_isqrt__very_large2()
+{
+  TEST_HEADER();
+  ArbInt *val = AI_NewArbInt_FromString("550055033897724336082014361446489990409");
+  ArbInt *ans = AI_isqrt(val);
+  ArbInt *expected = AI_NewArbInt_FromString("23453252096409238403");
+  TEST_EQUAL(ans, expected, AI_Equal, AI_ToStringDec);
+  TEST_FOOTER();
+}
+
+int test_isqrt__negative()
+{
+  TEST_HEADER();
+  ArbInt *val = AI_NewArbInt_From32(-1);
+  ArbInt *ans = AI_isqrt(val);
+  ArbInt *expected = NULL;
+  TEST_TRUE(ans == expected);
+  TEST_FOOTER();
+}
+
 int test_all_2()
 {
   return
@@ -741,6 +791,11 @@ int test_all_2()
     test_string__speed_dec100() &&
     test_string__speed_hex_wide() &&
     test_string__speed_dec() &&
+    test_isqrt__small() &&
+    test_isqrt__large() &&
+    test_isqrt__very_large() &&
+    test_isqrt__very_large2() &&
+    test_isqrt__negative() &&
     1;
 }
 
