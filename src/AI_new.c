@@ -220,7 +220,7 @@ ArbInt *AI_NewArbInt_FromCopy(ArbInt const *ai)
 }
 
 #if 1
-void *AI_Normalise(ArbInt *val);
+void *ai_normalise(ArbInt *val);
 
 ArbInt *AI_NewArbInt_SetBit(aibase_t bit) /* 0-based */
 {
@@ -243,7 +243,7 @@ ArbInt *AI_NewArbInt_SetBit(aibase_t bit) /* 0-based */
   lv[0] = 1 << high_pos;
   ai_assign_value(ret, lv, num_units, 1);
 
-  ret = AI_Normalise(ret);
+  ret = ai_normalise(ret);
 
   return ret;
 }
@@ -274,7 +274,7 @@ ArbInt *AI_NewArbInt_SetBit(aibase_t bit) /* 0-based */
 }
 #endif
 
-ArbInt *AI_Resize(ArbInt *val, unsigned long newsize)
+ArbInt *ai_resize(ArbInt *val, unsigned long newsize)
 {
   aibase_t *newdata;
 
@@ -319,7 +319,7 @@ void AI_FreeArbInt(ArbInt *aival)
   }
 }
 
-void *AI_Normalise(ArbInt *val)
+void *ai_normalise(ArbInt *val)
 {
   unsigned long dataLen = val->dataLen;
   unsigned long i;
