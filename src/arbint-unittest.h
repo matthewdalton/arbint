@@ -13,6 +13,9 @@ int test_ai_div_unsigned_by_subtraction__even_divide(void);
 STATIC int
 ai_get_hsb_position(unsigned long val);
 
+STATIC
+aibase_t arbint_get_hsb_position(ArbInt const *ai);
+
 STATIC ArbInt *
 ai_add_unsigned(ArbInt const *A, ArbInt const *B);
 

@@ -6,6 +6,7 @@
 #include "arbint.h"
 #include "arbint-priv.h"
 
+#include "AI_new.h"
 #include "AI_utils.h"
 
 STATIC int
@@ -94,9 +95,6 @@ ArbInt *AI_Add_And_Free(ArbInt *A, ArbInt *B)
 
 ArbInt *AI_Sub(ArbInt const *A, ArbInt const *B)
 {
-  AI_Normalise(A);
-  AI_Normalise(B);
-
   if (A->sign != B->sign) {
     if (A->sign > 0 && B->sign < 0) {
       ArbInt temp;
@@ -339,7 +337,7 @@ ai_add_unsigned(ArbInt const *A, ArbInt const *B)
 
   ans->dataLen = (A->dataLen > B->dataLen ? A->dataLen : B->dataLen);
   
-  AI_Resize(ans, ans->dataLen);
+  ai_resize(ans, ans->dataLen);
 
   /*
    * Make B hold the lower value
@@ -359,7 +357,7 @@ ai_add_unsigned(ArbInt const *A, ArbInt const *B)
 			  &carry);
 
     if (carry) {
-      AI_Resize(ans, ans->dataLen + 1);
+      ai_resize(ans, ans->dataLen + 1);
     }
   }
 
@@ -368,7 +366,7 @@ ai_add_unsigned(ArbInt const *A, ArbInt const *B)
       ai_add_single_carry(A->data[A->dataLen - 1 - i], 0, &carry);
 
     if (carry) {
-      AI_Resize(ans, ans->dataLen + 1);
+      ai_resize(ans, ans->dataLen + 1);
     }
   }
 
@@ -394,7 +392,7 @@ ai_sub_unsigned(ArbInt const *A, ArbInt const *B)
 
   newlen = (A->dataLen > B->dataLen ? A->dataLen : B->dataLen);
   
-  if (!ans || !AI_Resize(ans, newlen)) {
+  if (!ans || !ai_resize(ans, newlen)) {
     AI_FreeArbInt(ans);
     return NULL;
   }
@@ -433,7 +431,7 @@ ai_sub_unsigned(ArbInt const *A, ArbInt const *B)
       ai_sub_single_carry(A->data[A->dataLen - 1 - i], 0, &carry);
   }
 
-  AI_Normalise(ans);
+  ai_normalise(ans);
 
   return ans;
 }
@@ -612,7 +610,7 @@ ai_mul_signed(ArbInt const *A, ArbInt const *B)
 
 
   if (carry > 0) {
-    AI_Resize(ans, 2);
+    ai_resize(ans, 2);
     /* error check? */
     ans->dataLen = 2;
     ans->data[0] = carry;
@@ -641,7 +639,7 @@ ai_mul_single_stage(ArbInt const *A, aibase_t b)
 
   int i;
   ArbInt *partial = AI_NewArbInt();
-  if (!AI_Resize(partial, 2)) {
+  if (!ai_resize(partial, 2)) {
     AI_FreeArbInt(ans);
     AI_FreeArbInt(partial);
     return NULL;
@@ -692,7 +690,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   if (ans == NULL)
     goto error_exit;
 
-  if (!AI_Resize(ans, MAX(A->dataLen, (B->dataLen + B_lshift))))
+  if (!ai_resize(ans, MAX(A->dataLen, (B->dataLen + B_lshift))))
     goto error_exit;
 
   /*
@@ -794,7 +792,7 @@ ai_add_unsigned_with_lshift(ArbInt const *A, ArbInt const *B, size_t B_lshift)
   }
 
   if (carry > 0) {
-    if (!AI_Resize(ans, ans->dataLen + 1))
+    if (!ai_resize(ans, ans->dataLen + 1))
       goto error_exit;
     /* assert(0);			/\* Disabling as I suspect a bug *\/ */
     ans->data[0] = carry;
