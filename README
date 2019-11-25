@@ -7,3 +7,44 @@ Supports the following operations:
  - comparison operators (eq, lt, gt, lte, gte, neg)
  - pow, isqrt
 
+Build and run unit tests:
+
+```
+$ cd src
+$ make
+etags *.[ch]
+./arbint-test
+PASSED : test_AI_Greater
+PASSED : test_ai_add_unsigned_with_lshift
+PASSED : test_ai_div_unsigned_by_subtraction__zero_result
+PASSED : test_ai_div_unsigned_by_subtraction__even_divide
+PASSED : test_AI_FromString_ToString__short_string
+PASSED : test_AI_FromString_ToString__long_string
+PASSED : test_addition__overflow
+PASSED : test_addition__basic
+PASSED : test_subtraction__basic
+PASSED : test_from_string__basic
+PASSED : test_to_string__dec_regression
+PASSED : test_multiplication__basic
+PASSED : test_division__simple
+PASSED : test_string__base
+PASSED : test_setbit__basic
+PASSED : test_bititer__basic
+PASSED : test_bititer__long
+PASSED : test_hsb__1
+PASSED : test_hsb__2
+PASSED : test_hsb__4
+PASSED : test_pow_by_pow2__1
+PASSED : test_pow_by_pow2__2
+PASSED : test_pow__two
+PASSED : test_pow__three
+PASSED : test_pow__seven
+PASSED : test_string__speed_dec100
+PASSED : test_string__speed_hex_wide
+PASSED : test_string__speed_dec
+PASSED : test_isqrt__small
+PASSED : test_isqrt__large
+PASSED : test_isqrt__very_large
+PASSED : test_isqrt__very_large2
+PASSED : test_isqrt__negative
+```
